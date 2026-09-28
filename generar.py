@@ -236,7 +236,7 @@ def crear_pdf(r, fin, ruta):
     e.append(Paragraph(f"{DIRECCION_BUFETE}  Cel.: {TEL_BUFETE}  ·  Email: {EMAIL_BUFETE}",
                        estilo_pdf("pie", 8, False, TA_CENTER, 0, "#555555")))
     SimpleDocTemplate(str(ruta), pagesize=letter, leftMargin=2.5 * cm, rightMargin=2.5 * cm,
-                      topMargin=2 * cm, bottomMargin=2 * cm,
+                      topMargin=2 * cm, bottomMargin=2 * cm, pageCompression=1,
                       title=f"Requerimiento de pago - {r['cliente']}", author="LEX-S").build(e)
 
 
@@ -360,7 +360,7 @@ def unir_pdf(archivos, ruta):
     unido = pymupdf.open()
     for archivo in archivos:
         unido.insert_pdf(pymupdf.open(archivo))
-    unido.save(ruta)
+    unido.save(ruta, garbage=4, deflate=True)
 
 
 def main():
