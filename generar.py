@@ -85,10 +85,6 @@ def nombre_propio(nombre):
     return " ".join(p.capitalize() for p in nombre.split())
 
 
-def apellidos(nombre):
-    return nombre_propio(" ".join(nombre.split()[-2:]))
-
-
 def saludo(r):
     # Siempre neutro (como la carta del 27/09): el nombre no siempre indica si es hombre o mujer.
     return "Estimado(a) señor(a)"
@@ -227,7 +223,7 @@ def crear_pdf(r, fin, ruta):
         Paragraph(f"Tegucigalpa, M.D.C., {FECHA_DOC}.", estilo("f", alineacion=TA_LEFT)),
         Paragraph(f"Señor(a): {esc(r['cliente'])}", estilo("se", alineacion=TA_LEFT)),
         Paragraph(f"<b>Referencia:</b> {esc(referencia(r, fin))}", normal),
-        Paragraph(f"{saludo(r)} {esc(apellidos(r['cliente']))}:", estilo("sa", alineacion=TA_LEFT)),
+        Paragraph(f"{saludo(r)} {esc(nombre_propio(r['cliente']))}:", estilo("sa", alineacion=TA_LEFT)),
         *[Paragraph(esc(p), normal) for p in cuerpo],
         Paragraph("Atentamente,", estilo("a", alineacion=TA_LEFT, despues=0)),
     ]
@@ -276,7 +272,7 @@ def crear_docx(r, fin, ruta):
     ref.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     ref.add_run("Referencia: ").bold = True
     ref.add_run(referencia(r, fin))
-    p(f"{saludo(r)} {apellidos(r['cliente'])}:")
+    p(f"{saludo(r)} {nombre_propio(r['cliente'])}:")
     for texto in cuerpo:
         p(texto)
     p("Atentamente,")
@@ -332,6 +328,8 @@ def que_hacer(r, fin):
 
 
 def enlace_wa(r, fin, numero):
+    if r["accion"] == "NO ENVIAR" or r["whatsapp"] == "NO":
+        return ""
     tel = telefono_wa(numero)
     return f"https://web.whatsapp.com/send?phone={tel}&text={quote(mensaje_wa(r, fin))}" if tel else ""
 
