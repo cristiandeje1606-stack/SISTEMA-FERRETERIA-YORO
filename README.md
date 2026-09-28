@@ -9,13 +9,18 @@ y el sello digitales.
 1. Instale Python 3 (marcando «Add Python to PATH»).
 2. Doble clic en `INSTALAR_Y_GENERAR.bat`: instala lo necesario y genera los documentos.
 
-## Enviar
+## Enviar (automático)
 
-Doble clic en `ENVIAR_REQUERIMIENTOS.bat`. Se abre el sistema en el navegador con la lista de
-clientes. Para cada uno: botón **WhatsApp** (el mensaje ya va escrito) → **Mostrar PDF en
-carpeta** → arrastre el PDF al chat → Enviar → marque **Enviado**. El avance queda guardado en
-`datos/estado_envios.json`. También está el Excel `salida/LISTA_ENVIO_28SEPT.xlsx` con los mismos
-links.
+1. Doble clic en `ENVIAR_REQUERIMIENTOS.bat`: se abre el sistema en el navegador.
+2. **Conectar WhatsApp**: se abre Chrome con WhatsApp Web; escanee el QR con el celular del bufete
+   (Dispositivos vinculados). Solo la primera vez; la sesión queda guardada.
+3. **Enviarme una prueba** a su propio número para ver cómo llega.
+4. **ENVIAR** en cada fila, o **ENVIAR TODOS LOS VERDES**: el sistema abre el chat, envía el
+   mensaje, adjunta el PDF, confirma que salió y marca «Enviado». Deja 25–45 segundos entre
+   clientes. Si el primer número no tiene WhatsApp, prueba el segundo.
+
+Solo se envían las filas verdes (ENVIAR). Fuera del horario legal (CNBS 022/2022) pide
+confirmación. También queda `salida/LISTA_ENVIO_28SEPT.xlsx` para envío manual.
 
 ## Los dos tipos de requerimiento
 
