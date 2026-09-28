@@ -2,7 +2,7 @@
 
 Uso:  python generar.py
 Entrada: datos/cartera.csv
-         recursos/membrete.png, recursos/pie.png, recursos/firma_sello.png
+         recursos/membrete.jpg, recursos/pie.jpg, recursos/firma_sello.jpg
 Salida:  salida/pdf/*.pdf, salida/word/*.docx, salida/TODOS_PARA_IMPRIMIR.pdf,
          salida/ENVIO_WHATSAPP.xlsx, salida/registro.json (lo usa app.py)
 
@@ -213,7 +213,7 @@ def estilo(nombre, fuente="Helvetica", tam=11, alineacion=TA_JUSTIFY, despues=9)
 
 def imagen(c, archivo, caja):
     x, y, w, h = caja
-    c.drawImage(str(RECURSOS / archivo), x, ALTO - y - h, width=w, height=h, mask="auto")
+    c.drawImage(str(RECURSOS / archivo), x, ALTO - y - h, width=w, height=h)
 
 
 def crear_pdf(r, fin, ruta):
@@ -233,9 +233,9 @@ def crear_pdf(r, fin, ruta):
     c = canvas.Canvas(str(ruta), pagesize=letter)
     c.setTitle(f"Requerimiento de pago - {r['cliente']}")
     c.setAuthor("LEX-S Asesoría & Consultoría")
-    imagen(c, "membrete.png", MEMBRETE)
-    imagen(c, "pie.png", PIE)
-    imagen(c, "firma_sello.png", FIRMA)
+    imagen(c, "membrete.jpg", MEMBRETE)
+    imagen(c, "pie.jpg", PIE)
+    imagen(c, "firma_sello.jpg", FIRMA)
     c.setFont("Times-Roman", 10)
     c.drawCentredString(ANCHO / 2, ALTO - LINEA_FINANCIERA_Y, fin["razon"])
     ancho, alto = ANCHO - 2 * MARGEN_X, CUERPO_ABAJO - CUERPO_ARRIBA
@@ -257,8 +257,8 @@ def crear_docx(r, fin, ruta):
     sec.header_distance, sec.footer_distance = Cm(0.3), Cm(0.3)
     doc.styles["Normal"].font.name = "Arial"
     doc.styles["Normal"].font.size = Pt(11)
-    sec.header.paragraphs[0].add_run().add_picture(str(RECURSOS / "membrete.png"), width=Cm(16.5))
-    sec.footer.paragraphs[0].add_run().add_picture(str(RECURSOS / "pie.png"), width=Cm(16.5))
+    sec.header.paragraphs[0].add_run().add_picture(str(RECURSOS / "membrete.jpg"), width=Cm(16.5))
+    sec.footer.paragraphs[0].add_run().add_picture(str(RECURSOS / "pie.jpg"), width=Cm(16.5))
 
     def p(texto, negrita=False, centro=False, tam=11):
         par = doc.add_paragraph()
@@ -281,7 +281,7 @@ def crear_docx(r, fin, ruta):
     p("Atentamente,")
     firma = doc.add_paragraph()
     firma.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    firma.add_run().add_picture(str(RECURSOS / "firma_sello.png"), width=Cm(12))
+    firma.add_run().add_picture(str(RECURSOS / "firma_sello.jpg"), width=Cm(12))
     p(fin["razon"], centro=True, tam=10)
     doc.save(ruta)
 
