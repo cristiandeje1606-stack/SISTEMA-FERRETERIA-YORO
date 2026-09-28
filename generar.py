@@ -90,7 +90,8 @@ def apellidos(nombre):
 
 
 def saludo(r):
-    return {"M": "Estimado señor", "F": "Estimada señora"}.get(r["genero"], "Estimado(a) señor(a)")
+    # Siempre neutro (como la carta del 27/09): el nombre no siempre indica si es hombre o mujer.
+    return "Estimado(a) señor(a)"
 
 
 def saldo(r):
