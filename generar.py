@@ -107,6 +107,8 @@ def saldo(r):
 
 # --- Textos ----------------------------------------------------------------
 def referencia(r, fin):
+    if r["referencia"]:
+        return r["referencia"]
     if r["grupo"] == "DEMANDADO":
         veh = f"Vehículo {r['vehiculo']}, Placa {r['placa']}" if r["vehiculo"] else f"Vehículo Placa {r['placa']}"
         proceso = (f"Expediente Judicial No. {r['expediente']}, {JUZGADO}" if r["expediente"]
@@ -154,6 +156,10 @@ def texto_monto_predemanda(r):
         return (f"el saldo para cancelación total de su obligación asciende a {lempiras(monto)}, según "
                 "los registros de la financiera, más los intereses moratorios, cargos y gastos que se "
                 "continúen generando hasta su pago efectivo")
+    if tipo == "certificado":
+        return (f"el saldo total adeudado de dichos contratos asciende, según las Certificaciones de Saldos "
+                f"al {r['fecha_corte']}, a la cantidad de {lempiras(monto)}, monto que ya comprende capital, "
+                "intereses y cargos acumulados")
     if tipo == "mora":
         return (f"usted mantiene un saldo en mora (cuotas vencidas y no pagadas) de {lempiras(monto)}, "
                 "más los intereses moratorios, cargos y gastos que correspondan, sin perjuicio del "
@@ -182,8 +188,9 @@ def parrafos(r, fin):
         ]
     subtitulo = f"Requerimiento Previo a la Vía Judicial — {fin['razon']}" + (
         " (La Ceiba)" if fin["sucursal"] == "La Ceiba" else "")
+    contrato = "de los contratos antes referidos" if r["referencia"].startswith("Contratos") else "del contrato antes referido"
     return subtitulo, [
-        f"Por este medio le comunicamos que, ante el incumplimiento del contrato antes referido, "
+        f"Por este medio le comunicamos que, ante el incumplimiento {contrato}, "
         f"{fin['razon']} ha decidido reclamar judicialmente lo adeudado, siendo que a la fecha "
         f"{texto_monto_predemanda(r)}.",
         FUNDAMENTO_PREDEMANDA,
