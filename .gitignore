@@ -1,0 +1,6 @@
+# Datos personales de deudores: NO subir a GitHub (repositorio público)
+datos/
+salida/
+recursos/*.png
+recursos/*.jpg
+__pycache__/
