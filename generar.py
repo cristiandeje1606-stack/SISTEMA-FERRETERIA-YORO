@@ -303,7 +303,10 @@ def financiera_mensaje(fin):
 
 def mensaje_wa(r, fin):
     """Mensaje corto con el mismo formato de la lista del 27/09."""
-    nombre = nombre_propio(r["cliente"])
+    palabras = r["cliente"].split()
+    if len(palabras) >= 4 and palabras[-2:] == palabras[-4:-2]:  # apellido repetido (p. ej. Mc Lauglyn Mc Lauglyn)
+        palabras = palabras[:-2]
+    nombre = nombre_propio(" ".join(palabras))
     contrato = "sus contratos" if r["referencia"].startswith("Contratos") else "su contrato"
     if r["grupo"] == "DEMANDADO":
         asunto = f"relacionado con la demanda de {contrato} con {financiera_mensaje(fin)}"
