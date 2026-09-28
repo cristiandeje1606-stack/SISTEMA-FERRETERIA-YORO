@@ -1,35 +1,37 @@
-# Requerimientos de pago – LEX-S
+# Sistema de requerimientos de pago – LEX-S
 
-Genera, para cada deudor de la cartera, el **Requerimiento Formal de Pago previo a la vía judicial**
-(Word y PDF), un PDF único para imprimir y el Excel **ENVIO_WHATSAPP.xlsx**. En ese Excel, cada cliente
-tiene un link que abre su chat de WhatsApp con el mensaje ya escrito.
+Genera y envía por WhatsApp los requerimientos formales de pago de la cartera de Inversa
+(Credi Móvil, Credi Rapid, Presta Ya y Presta Auto). Cada documento lleva el membrete, la firma
+y el sello digitales.
 
-## Uso
+## Primera vez (en la PC)
 
-```
-pip install -r requirements.txt
-python generar.py
-```
+1. Instale Python 3 (marcando «Add Python to PATH»).
+2. Doble clic en `INSTALAR_Y_GENERAR.bat`: instala lo necesario y genera los documentos.
 
-- **Entrada:** `datos/cartera.csv` (una fila por deudor). La columna `accion` acepta `ENVIAR`,
-  `CONFIRMAR`, `NO ENVIAR` o `PEDIR CELULAR`. La columna `tipo_monto` acepta `capital`,
-  `cancelacion`, `mora` o `sin_monto`.
-- **Salida:** `salida/pdf/`, `salida/word/`, `salida/TODOS_PARA_IMPRIMIR.pdf` y
-  `salida/ENVIO_WHATSAPP.xlsx`.
-- La fecha del documento, la fecha límite y el firmante se cambian al inicio de `generar.py`.
+## Enviar
 
-## Firma y sello digital
+Doble clic en `ENVIAR_REQUERIMIENTOS.bat`. Se abre el sistema en el navegador con la lista de
+clientes. Para cada uno: botón **WhatsApp** (el mensaje ya va escrito) → **Mostrar PDF en
+carpeta** → arrastre el PDF al chat → Enviar → marque **Enviado**. El avance queda guardado en
+`datos/estado_envios.json`. También está el Excel `salida/ENVIO_WHATSAPP.xlsx` con los mismos
+links.
 
-Firme y selle una hoja en blanco, tómele foto o escanéela y recorte cada imagen. Guárdelas como:
+## Los dos tipos de requerimiento
 
-- `recursos/firma.png`
-- `recursos/sello.png`
-- `recursos/membrete.png` (opcional, el encabezado del bufete)
+- **Demanda presentada** (44 demandas presentadas el 07/08/2026 en proceso abreviado): informa
+  la demanda, el saldo reclamado y la medida de secuestro (arts. 616–619 CPC; arts. 1346, 1351 y
+  1360 del Código Civil). Ofrece pagar o hacer un arreglo antes de que el proceso siga avanzando.
+- **Por demandar** (nueva asignación): último requerimiento previo a la vía judicial
+  (arts. 1351, 1352, 1356 y 1361 del Código Civil).
 
-Vuelva a ejecutar `python generar.py`. Todos los requerimientos salen firmados y sellados. Si no
-están las imágenes, el documento deja la línea para firmar a mano.
+## Cambiar datos
+
+- Clientes, celulares, montos y qué hacer con cada uno: `datos/cartera.csv`.
+- Fecha del documento y fecha límite: al inicio de `generar.py`.
+- Después de cambiar algo, ejecute `python generar.py` otra vez.
 
 ## Privacidad
 
-El repositorio es público. `datos/` y `salida/` están en `.gitignore`, así que los nombres,
-celulares y saldos de los deudores nunca se suben a GitHub.
+Este repositorio es público. `datos/`, `salida/` y las imágenes de `recursos/` (firma y sello)
+están en `.gitignore` y nunca se suben a GitHub.
