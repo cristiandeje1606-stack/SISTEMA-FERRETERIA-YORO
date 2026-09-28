@@ -14,7 +14,7 @@ y el sello digitales.
 Doble clic en `ENVIAR_REQUERIMIENTOS.bat`. Se abre el sistema en el navegador con la lista de
 clientes. Para cada uno: botón **WhatsApp** (el mensaje ya va escrito) → **Mostrar PDF en
 carpeta** → arrastre el PDF al chat → Enviar → marque **Enviado**. El avance queda guardado en
-`datos/estado_envios.json`. También está el Excel `salida/ENVIO_WHATSAPP.xlsx` con los mismos
+`datos/estado_envios.json`. También está el Excel `salida/LISTA_ENVIO_28SEPT.xlsx` con los mismos
 links.
 
 ## Los dos tipos de requerimiento
