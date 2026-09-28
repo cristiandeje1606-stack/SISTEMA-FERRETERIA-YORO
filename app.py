@@ -17,7 +17,7 @@ from urllib.parse import unquote, urlparse
 
 BASE = Path(__file__).parent
 REGISTRO = BASE / "salida" / "registro.json"
-PDFS = BASE / "salida" / "pdf"
+PDFS = BASE / "salida" / "PDF"
 ESTADO = BASE / "datos" / "estado_envios.json"
 PUERTO = 8765
 BLOQUEO = threading.Lock()

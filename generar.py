@@ -3,13 +3,12 @@
 Uso:  python generar.py
 Entrada: datos/cartera.csv
          recursos/membrete.jpg, recursos/pie.jpg, recursos/firma_sello.jpg
-Salida:  salida/pdf/*.pdf, salida/word/*.docx, salida/TODOS_PARA_IMPRIMIR.pdf,
-         salida/ENVIO_WHATSAPP.xlsx, salida/registro.json (lo usa app.py)
+Salida:  salida/PDF/*.pdf, salida/WORD/*.docx, salida/TODOS_PARA_IMPRIMIR.pdf,
+         salida/LISTA_ENVIO_28SEPT.xlsx, salida/registro.json (lo usa app.py)
 
 Columna "grupo" de la cartera:
   DEMANDADO   demanda ya presentada: se le ofrece arreglo antes de que el proceso avance.
   PREDEMANDA  todavía no demandado: último requerimiento previo a la vía judicial.
-Si la fila trae "pdf_previo", no se genera documento nuevo (se usa el del 27/09).
 """
 import csv
 import html
@@ -35,6 +34,7 @@ BASE = Path(__file__).parent
 DATOS = BASE / "datos" / "cartera.csv"
 RECURSOS = BASE / "recursos"
 SALIDA = BASE / "salida"
+NOMBRE_LISTA = "LISTA_ENVIO_28SEPT.xlsx"
 
 # --- Datos del documento (editar aquí si cambian) -------------------------
 FECHA_DOC = "28 de septiembre de 2026"
@@ -69,13 +69,6 @@ FUNDAMENTO_DEMANDADO = (
     "de los mismos."
 )
 
-ACCIONES = {
-    "ENVIAR": ("ENVIAR", "C6EFCE"),
-    "CONFIRMAR": ("CONFIRMAR CON AMABLE antes de enviar", "FFEB9C"),
-    "PEDIR CELULAR": ("PEDIR CELULAR a la financiera o entregar en físico", "FFEB9C"),
-    "NO ENVIAR": ("NO ENVIAR", "FFC7CE"),
-    "YA ENVIADO": ("YA ENVIADO — no reenviar", "D9D9D9"),
-}
 ETAPAS = {"DEMANDADO": "Demanda presentada", "PREDEMANDA": "Por demandar"}
 
 
@@ -299,114 +292,115 @@ def telefono_wa(numero):
     return f"504{digitos}" if len(digitos) == 8 else ""
 
 
+def formato_tel(numero):
+    digitos = "".join(ch for ch in numero if ch.isdigit())
+    return f"{digitos[:4]}-{digitos[4:]}" if len(digitos) == 8 else numero
+
+
+def financiera_mensaje(fin):
+    return fin["corto"].replace(" Ceiba", "")
+
+
 def mensaje_wa(r, fin):
+    """Mensaje corto con el mismo formato de la lista del 27/09."""
     nombre = nombre_propio(r["cliente"])
-    placa = f" (vehículo placa {r['placa']})" if r["placa"] else ""
+    contrato = "sus contratos" if r["referencia"].startswith("Contratos") else "su contrato"
     if r["grupo"] == "DEMANDADO":
-        return (f"Buenos días, {nombre}. Le hago llegar el REQUERIMIENTO FORMAL DE PAGO relacionado con "
-                f"la demanda judicial presentada por {fin['razon']}{placa}. Antes de que el proceso "
-                f"continúe avanzando, tiene la oportunidad de pagar o formalizar un arreglo de pago con la "
-                f"financiera a más tardar el {FECHA_LIMITE}. Le adjunto el documento. Quedo atento a su "
-                f"comunicación. {FIRMA_MENSAJE}. Cel. {TEL_BUFETE}.")
-    return (f"Buenos días, {nombre}. Le hago llegar el REQUERIMIENTO FORMAL DE PAGO previo a la vía "
-            f"judicial de {fin['razon']}{placa}. Tiene plazo hasta el {FECHA_LIMITE} para formalizar un "
-            f"acuerdo de pago con la financiera; de lo contrario se presentará la demanda judicial. Le "
-            f"adjunto el documento. Quedo atento a su comunicación. {FIRMA_MENSAJE}. Cel. {TEL_BUFETE}.")
+        asunto = f"relacionado con la demanda de {contrato} con {financiera_mensaje(fin)}"
+    else:
+        asunto = f"de {contrato} con {financiera_mensaje(fin)}"
+    return (f"Buenos días, {nombre}. Le hago llegar el requerimiento de pago {asunto}. "
+            f"Quedo atento a su comunicación. {FIRMA_MENSAJE}.")
+
+
+def que_hacer(r, fin):
+    """Texto de la columna QUÉ HACER y color de la fila (mismos colores de la lista del 27/09)."""
+    motivo = f" ({r['motivo']})" if r.get("motivo") else ""
+    if r["accion"] == "NO ENVIAR":
+        return f"NO ENVIAR{motivo}", "F8CBAD"
+    if r["accion"] == "CONFIRMAR":
+        return f"CONFIRMAR CON AMABLE antes{motivo}", "FFF2CC"
+    if not r["celular"]:
+        return "ENTREGAR EN FÍSICO (no tiene celular)", "FFF2CC"
+    if r["whatsapp"] == "NO":
+        return f"NO TIENE WHATSAPP: pedir otro número a {fin['corto']} o entregar en físico", "F8CBAD"
+    return "ENVIAR", "E2EFDA"
+
+
+def enlace_wa(r, fin, numero):
+    tel = telefono_wa(numero)
+    return f"https://web.whatsapp.com/send?phone={tel}&text={quote(mensaje_wa(r, fin))}" if tel else ""
 
 
 def registro(filas):
     salida = []
-    for n, (r, fin, pdf, nuevo) in enumerate(filas, start=1):
-        msg = mensaje_wa(r, fin)
-        tels = [(r[c], telefono_wa(r[c])) for c in ("celular", "celular2") if r[c]]
+    for n, (r, fin, pdf) in enumerate(filas, start=1):
+        texto, _ = que_hacer(r, fin)
         salida.append({
             "id": n, "etapa": ETAPAS[r["grupo"]], "financiera": fin["corto"], "cliente": nombre_propio(r["cliente"]),
-            "accion": r["accion"], "que_hacer": ACCIONES[r["accion"]][0], "observacion": r["observacion"],
-            "saldo": saldo(r), "placa": r["placa"], "contrato": r["prestamo"], "pdf": pdf, "pdf_nuevo": nuevo,
-            "mensaje": msg,
-            "telefonos": [{"numero": t, "wa": f"https://wa.me/{w}?text={quote(msg)}" if w else ""} for t, w in tels],
+            "accion": "ENVIAR" if texto == "ENVIAR" else r["accion"], "que_hacer": texto,
+            "observacion": r["observacion"], "saldo": saldo(r), "placa": r["placa"], "contrato": r["prestamo"],
+            "pdf": pdf, "pdf_nuevo": True, "mensaje": mensaje_wa(r, fin), "whatsapp": r["whatsapp"],
+            "telefonos": [{"numero": formato_tel(r[c]), "wa": enlace_wa(r, fin, r[c])} for c in ("celular", "celular2") if r[c]],
         })
     return salida
 
 
 def crear_excel(filas, ruta):
+    """Lista de envío con el mismo esquema de LISTA_ENVIO_27SEPT.xlsx."""
     wb = Workbook()
     ws = wb.active
-    ws.title = "ENVIAR HOY"
-    encabezados = ["No.", "QUÉ HACER", "Etapa", "Financiera", "Cliente", "Celular", "ABRIR WHATSAPP",
-                   "Celular 2", "ABRIR WHATSAPP 2", "Saldo reclamado", "Placa", "Contrato",
-                   "PDF (arrastrar al chat)", "Mensaje (ya va escrito en el link)", "Observaciones",
-                   "¿Enviado?", "Fecha/hora envío"]
-    ws.append(encabezados)
+    ws.title = "ENVIAR"
+    ws.append(["No.", "QUÉ HACER", "Cliente", "Celular", "¿WhatsApp?", "ABRIR CHAT",
+               "Mensaje corto (copiar)", "PDF (arrastrar al chat)", "¿Enviado?"])
     for celda in ws[1]:
         celda.font = Font(bold=True, color="FFFFFF")
-        celda.fill = PatternFill("solid", fgColor="1F3A5F")
-        celda.alignment = Alignment(wrap_text=True, vertical="center", horizontal="center")
-
-    enlace = Font(color="0563C1", underline="single", bold=True)
-    for i, (r, fin, pdf, nuevo) in enumerate(filas, start=2):
-        texto, color = ACCIONES[r["accion"]]
-        activo = r["accion"] != "YA ENVIADO"
-        msg = mensaje_wa(r, fin) if activo else ""
-        tel1, tel2 = telefono_wa(r["celular"]), telefono_wa(r["celular2"])
-        ws.append([i - 1, texto, ETAPAS[r["grupo"]], fin["corto"], nombre_propio(r["cliente"]), r["celular"],
-                   "Abrir chat" if tel1 and activo else "", r["celular2"], "Abrir chat" if tel2 and activo else "",
-                   saldo(r), r["placa"], r["prestamo"], pdf if nuevo else f"{pdf} (del 27/09)", msg,
-                   r["observacion"], "Sí" if not activo else "No", ""])
-        for col, tel in ((7, tel1), (9, tel2)):
-            if tel and activo:
-                ws.cell(i, col).hyperlink = f"https://wa.me/{tel}?text={quote(msg)}"
-                ws.cell(i, col).font = enlace
-        if nuevo:
-            ws.cell(i, 13).hyperlink = f"pdf/{pdf}"
-        ws.cell(i, 10).number_format = '"L. "#,##0.00'
-        ws.cell(i, 2).fill = PatternFill("solid", fgColor=color)
-        ws.cell(i, 2).font = Font(bold=True)
-        for col in range(1, len(encabezados) + 1):
+        celda.fill = PatternFill("solid", fgColor="1F3864")
+        celda.alignment = Alignment(wrap_text=True, vertical="center")
+    enlace = Font(color="0563C1", underline="single")
+    for i, (r, fin, pdf) in enumerate(filas, start=2):
+        texto, color = que_hacer(r, fin)
+        celular = " / ".join(formato_tel(x) for x in (r["celular"], r["celular2"]) if x)
+        link = enlace_wa(r, fin, r["celular"]) if r["whatsapp"] != "NO" else ""
+        ws.append([i - 1, texto, nombre_propio(r["cliente"]), celular, r["whatsapp"],
+                   "Abrir chat" if link else None, mensaje_wa(r, fin), pdf, "No"])
+        if link:
+            ws.cell(i, 6).hyperlink = link
+            ws.cell(i, 6).font = enlace
+        ws.cell(i, 8).hyperlink = f"PDF\\{pdf}"
+        for col in range(1, 10):
+            ws.cell(i, col).fill = PatternFill("solid", fgColor=color)
             ws.cell(i, col).alignment = Alignment(wrap_text=True, vertical="top")
-
-    total = len(filas) + 1
+    for col, ancho in zip("ABCDEFGHI", [5, 34, 30, 22, 11, 12, 70, 40, 10]):
+        ws.column_dimensions[col].width = ancho
+    ws.freeze_panes = "D2"
     validacion = DataValidation(type="list", formula1='"No,Sí,No tiene WhatsApp,Entregado en físico"')
     ws.add_data_validation(validacion)
-    validacion.add(f"P2:P{total}")
-    for n, ancho in enumerate([5, 24, 14, 13, 30, 12, 12, 12, 12, 15, 10, 9, 45, 60, 40, 12, 16], start=1):
-        ws.column_dimensions[ws.cell(1, n).column_letter].width = ancho
-    ws.row_dimensions[1].height = 32
-    ws.freeze_panes = "F2"
-    ws.auto_filter.ref = f"A1:Q{total}"
+    validacion.add(f"I2:I{len(filas) + 1}")
 
     inst = wb.create_sheet("CÓMO ENVIAR")
     for linea in [
-        "CÓMO ENVIAR (2 minutos por cliente)",
-        "Lo más fácil: doble clic en ENVIAR_REQUERIMIENTOS.bat (abre el sistema en el navegador).",
-        "Desde este Excel: 1) clic en 'Abrir chat' (el mensaje ya va escrito); 2) arrastre el PDF de la carpeta pdf;",
-        "3) Enviar; 4) ponga 'Sí' en ¿Enviado? y la fecha/hora; 5) tome captura de pantalla.",
-        "",
-        "COLORES: verde = enviar; amarillo = confirmar o pedir dato antes; rojo = NO enviar; gris = ya enviado.",
+        "1. Haga clic en 'Abrir chat' (se abre en WhatsApp Web con el mensaje ya escrito).",
+        "2. Si WhatsApp dice 'no está en WhatsApp', márquelo y pase al siguiente.",
+        "3. Si el mensaje no aparece escrito, copie el 'Mensaje corto' y péguelo en el chat.",
+        "4. Abra la carpeta PDF y ARRASTRE el PDF de ese cliente (mismo número de fila) al chat; presione Enviar.",
+        "5. Ponga 'Sí' en la columna ¿Enviado? y tome captura de pantalla.",
         "HORARIO LEGAL (CNBS 022/2022): domingo 9:00 a.m. a 1:00 p.m.; lunes a sábado 8:00 a.m. a 8:00 p.m.; feriados NO.",
-        "Guarde las capturas: algunos juzgados piden acreditar el requerimiento (incluso con acta notarial).",
+        "Pendiente de Amable: expedientes 7736 y 7738 de Presta Ya (se desistirán): no enviar requerimiento a esas personas.",
     ]:
         inst.append([linea])
-    inst["A1"].font = Font(bold=True, size=14)
     inst.column_dimensions["A"].width = 120
 
-    resumen = wb.create_sheet("RESUMEN")
-    resumen.append(["Etapa", "Financiera", "Personas", "Enviar", "Confirmar / pedir dato", "No enviar",
-                    "Ya enviado", "Total reclamado (L.)"])
-    for c in resumen[1]:
+    detalle = wb.create_sheet("DETALLE")
+    detalle.append(["No.", "Etapa", "Financiera", "Cliente", "Contrato", "Placa", "Saldo reclamado", "Observaciones"])
+    for c in detalle[1]:
         c.font = Font(bold=True)
-    for etapa in ETAPAS:
-        for fin in dict.fromkeys(f["corto"] for _, f, _, _ in filas):
-            g = [r for r, f, _, _ in filas if r["grupo"] == etapa and f["corto"] == fin]
-            if not g:
-                continue
-            resumen.append([ETAPAS[etapa], fin, len(g), sum(r["accion"] == "ENVIAR" for r in g),
-                            sum(r["accion"] in ("CONFIRMAR", "PEDIR CELULAR") for r in g),
-                            sum(r["accion"] == "NO ENVIAR" for r in g), sum(r["accion"] == "YA ENVIADO" for r in g),
-                            sum(saldo(r) or 0 for r in g)])
-            resumen.cell(resumen.max_row, 8).number_format = "#,##0.00"
-    for col, ancho in zip("ABCDEFGH", [20, 18, 10, 8, 22, 10, 12, 20]):
-        resumen.column_dimensions[col].width = ancho
+    for i, (r, fin, pdf) in enumerate(filas, start=1):
+        detalle.append([i, ETAPAS[r["grupo"]], fin["corto"], nombre_propio(r["cliente"]), r["prestamo"],
+                        r["placa"], saldo(r), r["observacion"]])
+        detalle.cell(i + 1, 7).number_format = '"L. "#,##0.00'
+    for col, ancho in zip("ABCDEFGH", [5, 20, 18, 34, 16, 26, 16, 80]):
+        detalle.column_dimensions[col].width = ancho
     wb.save(ruta)
 
 
@@ -425,31 +419,25 @@ def unir_pdf(archivos, ruta):
 def main():
     if SALIDA.exists():
         shutil.rmtree(SALIDA)
-    word, pdf = SALIDA / "word", SALIDA / "pdf"
-    word.mkdir(parents=True)
-    pdf.mkdir()
+    pdf, word = SALIDA / "PDF", SALIDA / "WORD"
+    pdf.mkdir(parents=True)
+    word.mkdir()
 
     with open(DATOS, encoding="utf-8-sig") as f:
         registros = list(csv.DictReader(f))
 
-    filas, generados = [], []
+    filas = []
     for n, r in enumerate(registros, start=1):
         fin = FINANCIERAS[r["financiera"]]
-        if r["pdf_previo"]:
-            filas.append((r, fin, r["pdf_previo"], False))
-            continue
-        tipo = "Demandado" if r["grupo"] == "DEMANDADO" else "Requerimiento"
-        base = sin_acentos(f"{n:03d}_{tipo}_{r['cliente'].replace(' ', '_')}_{fin['corto'].replace(' ', '')}")
+        base = sin_acentos(f"{n:02d}_Requerimiento_{r['cliente'].replace(' ', '_')}_{fin['corto'].replace(' ', '')}")
         crear_pdf(r, fin, pdf / f"{base}.pdf")
         crear_docx(r, fin, word / f"{base}.docx")
-        filas.append((r, fin, f"{base}.pdf", True))
-        if r["accion"] != "NO ENVIAR":
-            generados.append(pdf / f"{base}.pdf")
+        filas.append((r, fin, f"{base}.pdf"))
 
-    crear_excel(filas, SALIDA / "ENVIO_WHATSAPP.xlsx")
-    unir_pdf(generados, SALIDA / "TODOS_PARA_IMPRIMIR.pdf")
+    crear_excel(filas, SALIDA / NOMBRE_LISTA)
+    unir_pdf([pdf / p for r, _, p in filas if r["accion"] != "NO ENVIAR"], SALIDA / "TODOS_PARA_IMPRIMIR.pdf")
     (SALIDA / "registro.json").write_text(json.dumps(registro(filas), ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"{len(filas)} personas en el sistema; {sum(nuevo for *_, nuevo in filas)} requerimientos generados.")
+    print(f"{len(filas)} requerimientos generados en {SALIDA}")
 
 
 if __name__ == "__main__":
