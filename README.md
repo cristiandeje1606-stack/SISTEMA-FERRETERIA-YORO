@@ -4,14 +4,14 @@ Genera y envía por WhatsApp los requerimientos formales de pago de la cartera d
 (Credi Móvil, Credi Rapid, Presta Ya y Presta Auto). Cada documento lleva el membrete, la firma
 y el sello digitales.
 
-## Primera vez (en la PC)
+## Abrir el sistema
 
-1. Instale Python 3 (marcando «Add Python to PATH»).
-2. Doble clic en `INSTALAR_Y_GENERAR.bat`: instala lo necesario y genera los documentos.
+Doble clic en `ENVIAR_REQUERIMIENTOS.bat` (en el paquete está junto a la carpeta `sistema`).
+La primera vez instala lo necesario solo; después abre directo. Requiere Python 3 instalado.
 
 ## Enviar (automático)
 
-1. Doble clic en `ENVIAR_REQUERIMIENTOS.bat`: se abre el sistema en el navegador.
+1. Doble clic en `ENVIAR_REQUERIMIENTOS.bat`: se abre el sistema.
 2. **Conectar WhatsApp**: se abre Chrome con WhatsApp Web; escanee el QR con el celular del bufete
    (Dispositivos vinculados). Solo la primera vez; la sesión queda guardada.
 3. **Enviarme una prueba** a su propio número para ver cómo llega.

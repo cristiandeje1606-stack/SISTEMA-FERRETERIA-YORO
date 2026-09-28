@@ -199,13 +199,14 @@ tr.ENVIAR td{background:#e2efda}tr.AMARILLO td{background:#fff2cc}tr.ROJO td{bac
 button,a.btn{display:inline-block;margin:2px 2px 2px 0;padding:6px 10px;border-radius:6px;border:1px solid var(--borde);background:#fff;cursor:pointer;font-size:13px;text-decoration:none;color:#1b1f24}
 button.wa{background:#25d366;color:#fff;border-color:#1da851;font-weight:700}
 button.wa:disabled{background:#b9c2bd;border-color:#b9c2bd;cursor:not-allowed}
+button.paso{background:#1f3864;color:#fff;border-color:#1f3864;font-weight:700;font-size:15px;padding:10px 16px}
 button.alto{background:#b42318;color:#fff;border-color:#b42318}
 .est{font-weight:700}.Enviado{color:var(--verde)}.Error,.No{color:var(--rojo)}.cola{color:var(--amarillo)}
 </style></head><body>
 <header><div><h1>LEX-S · Sistema de envío de requerimientos</h1><small>Asesoría &amp; Consultoría — Derecho Empresarial y Políticas Públicas</small></div>
 <div class="cont" id="cont"></div></header>
 <div class="panel">
-<button onclick="conectar()">1. Conectar WhatsApp</button>
+<button class="paso" onclick="conectar()">1. CONECTAR WHATSAPP</button>
 <button class="wa" onclick="enviarVerdes()">2. ENVIAR TODOS LOS VERDES</button>
 <button class="alto" onclick="detener()">Detener</button>
 <span>WhatsApp: <span id="estadoWa">Desconectado</span></span> <span id="actual" class="obs"></span>
