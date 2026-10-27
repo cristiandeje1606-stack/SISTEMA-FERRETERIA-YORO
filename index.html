@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-title" content="UNE Visión">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
-</head><body>
+<meta name="une-plan" content="pro"></head><body>
 
 <title>UNE Visión Publicaciones</title>
 <style>
@@ -1101,6 +1101,8 @@ const $ = s => document.querySelector(s);
 const st = $('#st'), prev = $('#prev'), pctx = prev.getContext('2d');
 const TIERS = { basico: 1, premium: 2, pro: 3 }, TNAME = { basico: 'Básico', premium: 'Premium', pro: 'Pro' };
 const NEED = { clasico: 1, cristal: 2, impacto: 3 };
+// Instalación de un cliente: <meta name="une-plan" content="basico|premium|pro"> fija el plan y oculta todo lo que no incluye.
+const PLAN_FIJO = (() => { const m = document.querySelector('meta[name="une-plan"]'); const v = m && m.content; return v && TIERS[v] ? v : null; })();
 let mode = 'foto', fmt = 'post', fam = 'general', style = 'impacto', tier = 'pro', media = null, busy = false, dl = null, playing = true, t0 = performance.now();
 let brand = { une: true };
 let sponsors = [{}, {}, {}], adOn = false, adPick = 0, clips = [];
@@ -1113,7 +1115,7 @@ const ls = { get(k) { try { return localStorage.getItem(k); } catch (_) { return
 
 function lvl() { return TIERS[tier]; }
 function opts(extra) {
-  return Object.assign({ fam, style, brand: lvl() >= 3 ? brand : { une: true }, sponsor: lvl() >= 3 && adOn ? sponsorAt(adPick) || activeSponsors()[0] || null : null, head: $('#head').value, sub: $('#sub').value, date: $('#date').value, fy: +$('#fy').value, zoom: +$('#zoom').value, img: media }, extra || {});
+  return Object.assign({ fam, style, brand: brandOn() ? brand : { une: true }, sponsor: lvl() >= 3 && adOn ? sponsorAt(adPick) || activeSponsors()[0] || null : null, head: $('#head').value, sub: $('#sub').value, date: $('#date').value, fy: +$('#fy').value, zoom: +$('#zoom').value, img: media }, extra || {});
 }
 function size() { return UNE.SIZES[fmt]; }
 function canMove() { return lvl() >= 2; }
@@ -1176,6 +1178,12 @@ function applyTier() {
   newsInfo();
   if (mode === 'video') $('#fileS').textContent = 'MP4 o MOV · hasta ' + MAXMIN[tier] + ' minutos en total' + (lvl() >= 3 ? ' · puedes elegir varios' : '');
   $('#tierTxt').textContent = { basico: 'Diseño Clásico, fotos y videos con marco y redacción automática.', premium: 'Agrega Cristal 3D y piezas con movimiento.', pro: 'Todo: Impacto 4D, video noticia con cortinas y sonido, publicidad, varios videos unidos y marca editable.' }[tier] + (tier === 'pro' ? ' Este es el plan de UNE Visión.' : ' (Vista para mostrar a los medios.)');
+  if (PLAN_FIJO) {
+    document.querySelectorAll('#sty button').forEach(b => b.hidden = lvl() < NEED[b.dataset.v]);
+    if (!canMove()) $('#goAnim').hidden = true;
+    $('#brandBox').hidden = !pro; $('#adBox').hidden = !pro;
+    if (!pro) { $('#newsBox').hidden = true; $('#goNews').hidden = true; }
+  }
   ls.set('une_tier2', tier); t0 = performance.now(); refresh();
 }
 document.querySelectorAll('#tier button').forEach(b => b.onclick = () => { tier = b.dataset.t; applyTier(); });
@@ -1242,7 +1250,7 @@ $('#file').addEventListener('change', async e => {
 function fmtT(s) { s = Math.round(s || 0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 function slug() {
   const t = ($('#head').value || 'publicacion').replace(/\*/g, '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40).toLowerCase();
-  const pre = lvl() >= 3 && !brand.une && brand.name ? brand.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '').slice(0, 14) : 'UNE';
+  const pre = brandOn() && !brand.une && brand.name ? brand.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '').slice(0, 14) : 'UNE';
   return pre + '-' + (t || 'publicacion');
 }
 let lastFile = null;
@@ -1391,7 +1399,7 @@ function newsInfo() {
   el.textContent = (n ? n + (n > 1 ? ' fotos' : ' foto') : 'Sin fotos todavía') + ' · el video dura unos ' + Math.round(P.total) + ' segundos.';
 }
 function newsFrame(ctx, W, H, g, P) {
-  const co = { brand: lvl() >= 3 ? brand : { une: true }, fam: P.famKey, date: $('#date').value };
+  const co = { brand: brandOn() ? brand : { une: true }, fam: P.famKey, date: $('#date').value };
   if (g < P.P0) UNE.intro(ctx, W, H, co, g);
   else if (g < P.P1) {
     const k = Math.min(P.n - 1, Math.floor((g - P.P0) / P.N)), lt = g - P.P0 - k * P.N, u = cl01(lt / P.N), ph = photos[k] || photos[0];
@@ -1415,7 +1423,7 @@ async function recordNews(ac) {
   const bar = $('#bar'), bi = bar.querySelector('i'); bar.style.display = 'block';
   newsFrame(ctx, W, H, 0, P); rec.start(500);
   const lead = .1, s0 = performance.now() + lead * 1000;
-  if (dest) { try { buildScore(ac, dest, sound, { t0: ac.currentTime + lead, hit: P.hit, trans: P.trans, outroHit: P.outroHit, une: !(lvl() >= 3 && !brand.une), end: P.total }); } catch (e) { console.warn(e); } }
+  if (dest) { try { buildScore(ac, dest, sound, { t0: ac.currentTime + lead, hit: P.hit, trans: P.trans, outroHit: P.outroHit, une: !(brandOn() && !brand.une), end: P.total }); } catch (e) { console.warn(e); } }
   const D = P.total + .08;
   await new Promise(done => {
     const tick = () => {
@@ -1628,7 +1636,10 @@ $('#adOn').addEventListener('change', () => { adOn = $('#adOn').checked; saveAds
 document.querySelectorAll('#adPick button').forEach(b => b.onclick = () => { adPick = +b.dataset.v; document.querySelectorAll('#adPick button').forEach(x => x.setAttribute('aria-pressed', x === b)); saveAds(); t0 = performance.now(); refresh(); });
 
 // ---------- marca editable (Pro) ----------
+function brandOn() { return lvl() >= 3 || !!PLAN_FIJO; }
 function loadBrand() {
+  // marca configurada en la instalación del cliente
+  try { const m = document.querySelector('meta[name="une-brand"]'); if (m && m.content && !ls.get('une_brand')) ls.set('une_brand', decodeURIComponent(m.content)); } catch (_) {}
   try { const b = JSON.parse(ls.get('une_brand') || 'null'); if (b && !b.une) { brand = Object.assign({}, b, { logoImg: null }); if (b.logo) { const im = new Image(); im.src = b.logo; im.decode().then(() => { brand.logoImg = im; refresh(); }).catch(() => {}); } } } catch (_) {}
   $('#bName').value = brand.une ? '' : brand.name || ''; $('#bHandle').value = brand.une ? '' : brand.handle || ''; $('#bSlogan').value = brand.une ? '' : brand.slogan || '';
   if (!brand.une) { $('#bC1').value = brand.c1 || '#08E1FF'; $('#bC2').value = brand.c2 || '#F6901C'; }
@@ -1684,9 +1695,9 @@ async function listModels(key) {
   return ok.map(m => m.name).sort((a, b) => score(b) - score(a));
 }
 
-function mediaName() { return lvl() >= 3 && !brand.une ? (brand.name || 'el medio') : 'UNE Visión'; }
+function mediaName() { return brandOn() && !brand.une ? (brand.name || 'el medio') : 'UNE Visión'; }
 function aiPrompt(raw, again) {
-  const nm = mediaName(), sl = lvl() >= 3 && !brand.une ? (brand.slogan || '').replace(/\*/g, '') : 'El canal que crece cada día';
+  const nm = mediaName(), sl = brandOn() && !brand.une ? (brand.slogan || '').replace(/\*/g, '') : 'El canal que crece cada día';
   return `Eres el editor de noticias de ${nm}${nm === 'UNE Visión' ? ', canal de televisión de Santa Bárbara, Honduras' : ''}. Con la información de abajo prepara una publicación para Facebook.
 
 Reglas:
@@ -1776,6 +1787,7 @@ $('#copy').onclick = async () => {
 // ---------- inicio ----------
 (function init() {
   const tz = ls.get('une_tier2'); if (tz && TIERS[tz]) tier = tz;
+  if (PLAN_FIJO) { tier = PLAN_FIJO; document.querySelector('.planbar').hidden = true; $('#planes').hidden = true; document.body.classList.add('fijo'); }
   const sz = ls.get('une_style'); if (sz && NEED[sz]) style = sz;
   document.querySelectorAll('#sty button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === style));
   const d = new Date(), dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'], meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
