@@ -132,6 +132,10 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
 .clip .bt button{font:inherit;width:34px;height:34px;border-radius:8px;border:1px solid var(--linea);background:rgba(255,255,255,.05);color:var(--tx);cursor:pointer}
 .clip .tr{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .clip .tr input{padding:8px 10px}
+.clip.ph{grid-template-columns:auto 52px 1fr auto}
+.clip.ph img{width:52px;height:52px;object-fit:cover;border-radius:8px;display:block}
+.btn.news{background:linear-gradient(90deg,#FF5A76,#E3173E 60%,#B30F2E);color:#fff}
+.btn.news .tag{background:rgba(255,255,255,.2)}
 .keybox{border-top:1px solid var(--linea);padding-top:10px}
 .keybox summary{cursor:pointer;font-family:UneCond,sans-serif;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:13px;color:var(--cian)}
 .keybox ol{margin:10px 0;padding-left:20px;color:var(--tx2);font-size:14.5px}
@@ -144,7 +148,7 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
   <header>
     <canvas id="hlogo" width="472" height="420" aria-label="UNE Visión"></canvas>
     <div><h1>Estudio de <span>noticias</span></h1>
-    <p class="lead">Sube la foto o el video, deja que la IA redacte la nota y descarga la pieza con la identidad del medio: fija, en 3D o con movimiento.</p></div>
+    <p class="lead">Sube la foto o el video, el sistema redacta la nota y tú descargas la pieza con la identidad del medio: fija, en 3D o con movimiento.</p></div>
   </header>
 
   <div class="planbar">
@@ -165,22 +169,22 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
       </div>
 
       <div class="ai" id="ai">
-        <div class="aih"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FDAE03" stroke-width="1.8" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span class="l" style="margin:0">Redacción con IA</span></div>
+        <div class="aih"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FDAE03" stroke-width="1.8" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span class="l" style="margin:0">Redacción automática</span></div>
         <label class="l" for="raw" style="margin-top:4px">Pega la información tal como te llegó</label>
         <textarea id="raw" placeholder="Ej.: Hoy a las 10 de la mañana el alcalde inauguró el centro de salud de la aldea El Zapote, con apoyo de la Secretaría de Salud. Va a atender a unas 3,000 familias..."></textarea>
         <div class="row2">
           <button class="btn" id="aiGo" type="button">Preparar noticia</button>
           <button class="btn alt" id="aiAgain" type="button" disabled>Otra versión</button>
         </div>
-        <p class="hint" id="aiSt" aria-live="polite">La IA arma el titular, la sección, la línea extra y el texto para publicar. Usa solo los datos que pegues.</p>
+        <p class="hint" id="aiSt" aria-live="polite">El sistema arma el titular, la sección, la línea extra y el texto para publicar. Usa solo los datos que pegues.</p>
         <details id="keyBox" class="keybox">
-          <summary>Configurar IA gratis (una sola vez)</summary>
+          <summary>Activar redacción automática (una sola vez)</summary>
           <ol>
             <li>Entra a <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> con tu cuenta de Google.</li>
             <li>Toca <b>Create API key</b> (crear clave). No pide tarjeta.</li>
             <li>Copia la clave y pégala aquí.</li>
           </ol>
-          <input type="text" id="key" placeholder="Pega aquí tu clave de Google AI" autocomplete="off" spellcheck="false">
+          <input type="text" id="key" placeholder="Pega aquí tu clave de Google" autocomplete="off" spellcheck="false">
           <div class="row2"><button class="btn" id="keySave" type="button">Guardar clave</button><button class="btn alt" id="keyDel" type="button">Borrar clave</button></div>
           <p class="hint">La clave se guarda solo en este teléfono o computadora. Cada persona del equipo usa la suya.</p>
         </details>
@@ -196,6 +200,13 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#08E1FF" stroke-width="1.7" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>
         <span><b id="fileT">Elegir foto</b><small id="fileS">JPG o PNG desde tu teléfono o computadora</small></span>
       </label>
+
+      <div id="photoBox" hidden>
+        <span class="l">Fotos del video noticia (Pro)</span>
+        <p class="hint" style="margin:0 0 8px">Salen en este orden. La primera es la de la vista previa y la de la foto fija. Hasta 8 fotos.</p>
+        <div class="clips" id="photos"></div>
+        <button class="btn alt" id="addPh" type="button" style="margin-top:8px">Agregar más fotos</button>
+      </div>
 
       <div><span class="l">Estilo de diseño</span>
         <div class="styles" id="sty">
@@ -234,6 +245,32 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
         <div><label class="l" for="zoom">Acercar</label><input type="range" id="zoom" min="1" max="2" step=".01" value="1"></div>
       </div>
 
+      <details class="brand" id="newsBox">
+        <summary><span>Cortina y sonido</span><span id="newsLock" class="lock" style="position:static">Pro</span></summary>
+        <div class="in">
+          <p class="hint" style="margin:0">Para el video noticia: abre con la cortina del noticiero, pasan tus fotos con el titular y cierra con el logo del medio. La música y los efectos ya van en el video.</p>
+          <div><span class="l">Cortina</span><div class="chips" id="cort">
+            <button data-v="seccion" aria-pressed="true">Según la sección</button>
+            <button data-v="noticiero" aria-pressed="false">Noticiero</button>
+            <button data-v="ultima" aria-pressed="false">Última hora</button>
+            <button data-v="none" aria-pressed="false">Sin cortina</button>
+          </div></div>
+          <div><span class="l">Sonido</span><div class="chips" id="snd">
+            <button data-v="noticiero" aria-pressed="true">Noticiero</button>
+            <button data-v="impacto" aria-pressed="false">Impacto</button>
+            <button data-v="suave" aria-pressed="false">Suave</button>
+            <button data-v="none" aria-pressed="false">Sin sonido</button>
+          </div></div>
+          <div><span class="l">Segundos por foto</span><div class="chips" id="secs">
+            <button data-v="4" aria-pressed="false">4 s</button>
+            <button data-v="6" aria-pressed="true">6 s</button>
+            <button data-v="8" aria-pressed="false">8 s</button>
+          </div></div>
+          <button class="btn alt" id="sndTest" type="button">Probar sonido</button>
+          <p class="hint" id="newsInfo" style="margin:0"></p>
+        </div>
+      </details>
+
       <details class="brand" id="brandBox">
         <summary><span>Marca del medio</span><span id="brandLock" class="lock" style="position:static">Pro</span></summary>
         <div class="in">
@@ -271,6 +308,7 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
 
       <button class="btn" id="go">Descargar foto</button>
       <button class="btn ice" id="goAnim">Descargar post animado (MP4)</button>
+      <button class="btn news" id="goNews">Descargar video noticia (MP4)</button>
       <button class="btn alt" id="frameBtn">Descargar solo el marco (PNG transparente)</button>
     </div>
 
@@ -299,7 +337,7 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
           <li>Diseño Clásico con la marca del medio</li>
           <li>Foto y video con marco (hasta 3 min) · 4 formatos</li>
           <li>7 secciones (Noticias, Última hora, Deportes…)</li>
-          <li>Redacción con IA: titular y texto para Facebook</li>
+          <li>Redacción automática: titular y texto para Facebook</li>
           <li>Marco PNG para CapCut</li>
           <li class="no">Diseños 3D y con movimiento</li>
           <li class="no">Marca editable por el medio</li>
@@ -331,6 +369,7 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
           <li>Diseño Impacto 4D: capas en profundidad, destellos y cámara en movimiento</li>
           <li>Última hora con alerta animada</li>
           <li>Cinta de publicidad en posts y videos, hasta 3 patrocinadores que se turnan</li>
+          <li>Video noticia con varias fotos, cortinas y sonido de noticiero</li>
           <li>Varios videos sueltos: el sistema los ordena, los recorta y los une</li>
           <li>Videos largos (hasta 60 min) en mayor calidad</li>
           <li>Marca editable: logo, colores y eslogan, para programas</li>
@@ -470,11 +509,11 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
 
   // ---------- recursos gráficos ----------
   function rnd(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
-  function ribbon(ctx, W, s, cols, pts, n, seed, alpha, ph = 0, reveal = 1) {
+  function ribbon(ctx, W, s, cols, pts, n, seed, alpha, ph = 0, reveal = 1, fast = false) {
     if (reveal <= 0) return;
     const r = rnd(seed); ctx.save(); ctx.globalCompositeOperation = 'lighter';
     const g = ctx.createLinearGradient(0, 0, W, 0); cols.forEach((c, j) => g.addColorStop(j / (cols.length - 1), c));
-    ctx.strokeStyle = g; ctx.shadowColor = cols[1]; ctx.shadowBlur = 10 * s;
+    ctx.strokeStyle = g; if (!fast) { ctx.shadowColor = cols[1]; ctx.shadowBlur = 10 * s; }
     if (reveal < 1) { ctx.beginPath(); ctx.rect(-100 * s, -1e4, (W + 200 * s) * reveal, 3e4); ctx.clip(); }
     for (let i = 0; i < n; i++) {
       const t = i / (n - 1) - .5, tw = Math.sin(i * .9 + ph * 1.3);
@@ -484,6 +523,7 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
       const w1 = Math.sin(ph + i * .2) * 30 * s, w2 = Math.cos(ph * .8 + i * .15) * 30 * s;
       ctx.beginPath(); ctx.moveTo(a[0], a[1] + off);
       ctx.bezierCurveTo(b[0], b[1] + off2 * 1.4 + w1, c[0], c[1] - off * 1.2 + w2, d[0], d[1] + off * .6);
+      if (fast) { const lw = ctx.lineWidth, ga = ctx.globalAlpha; ctx.lineWidth = lw * 5; ctx.globalAlpha = ga * .12; ctx.stroke(); ctx.lineWidth = lw; ctx.globalAlpha = ga; } // brillo barato (sin shadowBlur) para el video
       ctx.stroke();
     }
     ctx.restore();
@@ -859,8 +899,201 @@ h2{margin:0;font-family:UneDisplay,sans-serif;font-weight:900;text-transform:upp
     if (adH) { ctx.restore(); drawSponsor(ctx, W, H, adH, s, B, sp, t, o.sponsorT); }
     ctx.restore();
   }
+  // ================= CORTINAS del video noticia (Pro): entrada, cierre y barrido entre fotos =================
+  const CORT = { DI: 2.2, DO: 2.6, TR: .56, HIT: .9, LAND: .8 };
+  const scl = (W, H) => W > H ? H / 1080 : W / 1080;
+  function logoBox(B, w) {
+    if (B.logoImg) { const im = B.logoImg, iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height, k = Math.min(w / iw, (w * .9) / ih); return [iw * k, ih * k]; }
+    if (!B.une) return [w, w * .26];
+    const fs = w * .289; return [w, w * 1000 / 1498 + fs * .02 + fs * .74 * .98 + fs * .04];
+  }
+  // logo centrado en cx (sirve para UNE, logo subido o nombre en texto)
+  function logoAt(ctx, B, cx, y, w, opt = {}) {
+    const [bw, bh] = logoBox(B, w);
+    if (B.logoImg) { ctx.save(); if (opt.glow) { ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = w * .1; } ctx.drawImage(B.logoImg, cx - bw / 2, y, bw, bh); ctx.restore(); return bh; }
+    if (!B.une) {
+      ctx.save(); let fs = w * .2; ctx.font = `900 ${fs}px ${DISP}`; const mw = opt.maxW || w * 1.7, tw = ctx.measureText(B.name.toUpperCase()).width;
+      if (tw > mw) { fs *= mw / tw; ctx.font = `900 ${fs}px ${DISP}`; }
+      ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = fs * .3; ctx.fillText(B.name.toUpperCase(), cx, y + w * .2); ctx.restore(); return bh;
+    }
+    return uneLogo(ctx, cx - w / 2, y, w, opt);
+  }
+  function glowAt(ctx, W, H, x, y, r, c, a) { if (a <= 0) return; const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgba(c, a)); g.addColorStop(1, rgba(c, 0)); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+  // fondo de estudio: degradado de marca, luces, piso en perspectiva y viñeta
+  function cortBg(ctx, W, H, s, B, col, t) {
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#06121F'); g.addColorStop(.5, '#0B2238'); g.addColorStop(1, '#06121F');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    const R = Math.max(W, H);
+    glowAt(ctx, W, H, W * .16 + Math.sin(t * .8) * 80 * s, H * .26, R * .62, B.cold[1], .34);
+    glowAt(ctx, W, H, W * .86 + Math.cos(t * .7) * 70 * s, H * .74, R * .6, col, .28);
+    const hz = H * .68;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, hz, W, H - hz); ctx.clip(); ctx.strokeStyle = B.cold[0]; ctx.lineWidth = 1.5 * s;
+    for (let i = -16; i <= 16; i++) { ctx.globalAlpha = .17; ctx.beginPath(); ctx.moveTo(W / 2 + i * W * .02, hz); ctx.lineTo(W / 2 + i * W * .26, H + 10); ctx.stroke(); }
+    const off = (t * .55) % 1;
+    for (let j = 0; j < 12; j++) { const q = (j + off) / 12, y = hz + (H - hz) * q * q; ctx.globalAlpha = .26 * q; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+    ctx.restore();
+    vgrad(ctx, 0, hz, W, 200 * s, [[0, 'rgba(8,27,45,.95)'], [1, 'rgba(8,27,45,0)']]);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; const hl = ctx.createLinearGradient(0, 0, W, 0); hl.addColorStop(0, rgba(B.cold[0], 0)); hl.addColorStop(.5, rgba(B.cold[0], .55)); hl.addColorStop(1, rgba(B.cold[0], 0)); ctx.fillStyle = hl; ctx.fillRect(0, hz - 1.5 * s, W, 3 * s); ctx.restore();
+    const vg = ctx.createRadialGradient(W / 2, H / 2, R * .28, W / 2, H / 2, R * .78); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.6)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  }
+  function labelFit(ctx, label, W, s, land, M) {
+    const maxW = W - 2 * M - 40 * s, maxF = (land ? 200 : 214) * s;
+    ctx.font = `900 ${maxF}px ${DISP}`;
+    const fit = l => Math.min(maxF, maxF * maxW / ctx.measureText(l).width);
+    let lines = [label], fs = fit(label);
+    if (fs < (land ? 120 : 150) * s && label.includes(' ')) { lines = label.split(' '); fs = Math.min(...lines.map(fit)); }
+    return { lines, fs };
+  }
+  // ENTRADA: ~2.2 s. o = { brand, fam, date }
+  function intro(ctx, W, H, o, t) {
+    const B = makeBrand(o.brand), f = FAM[o.fam] || FAM.general, label = f.label || 'NOTICIAS', cols = f.ribbon || B.hot;
+    const land = W > H, s = scl(W, H), M = (land ? 90 : 60) * s, alert = o.fam === 'ultima';
+    ctx.save(); ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+    cortBg(ctx, W, H, s, B, cols[1], t);
+    // distribución vertical del bloque
+    const L = labelFit(ctx, label, W, s, land, M), lh = L.fs * 1.06, LH = L.lines.length * lh;
+    const lw = (land ? 240 : 270) * s, lgH = logoBox(B, lw)[1], barH = 68 * s, dateH = alert && o.date ? 64 * s : 0;
+    const gap1 = (land ? 60 : 80) * s, gap2 = 46 * s, tot = lgH + gap1 + LH + gap2 + barH + dateH;
+    const y0 = (H - tot) / 2, ly = y0 + lgH + gap1, ry = ly + LH / 2;
+    // cintas de luz que entran barriendo
+    const ph = t * 1.3;
+    ribbon(ctx, W, s, B.cold, [[-80 * s, ry + 260 * s], [W * .3, ry - 60 * s], [W * .66, ry + 330 * s], [W + 80 * s, ry + 60 * s]], 20, 3, .62, ph, eio(pr(t, 0, .8)), true);
+    ribbon(ctx, W, s, cols, [[-80 * s, ry - 240 * s], [W * .36, ry + 70 * s], [W * .6, ry - 300 * s], [W + 80 * s, ry - 40 * s]], 18, 7, .62, ph + 1, eio(pr(t, .12, .8)), true);
+    particles(ctx, W, 0, H, s, cols[1], 41, t * 1.6, 60, 1.2, 46);
+    // logo arriba
+    const le = eo(pr(t, .08, .6));
+    if (le > 0) { ctx.save(); ctx.globalAlpha = le; ctx.translate(0, -(1 - le) * 50 * s); logoAt(ctx, B, W / 2, y0, lw, { glow: true, maxW: W - 2 * M }); ctx.restore(); }
+    // resplandor detrás de la etiqueta cuando aterriza
+    const hk = pr(t, CORT.HIT - .1, .9);
+    if (hk > 0) glowAt(ctx, W, H, W / 2, ry, Math.max(W, LH * 2) * .62, cols[1], .5 * Math.sin(Math.min(1, hk * 2.2) * Math.PI / 2) * (1 - .45 * hk));
+    // destello anamórfico en el golpe
+    const fk = pr(t, CORT.HIT - .04, .65);
+    if (fk > 0 && fk < 1) {
+      const a = Math.sin(fk * Math.PI), g = ctx.createLinearGradient(0, 0, W, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, `rgba(255,255,255,${.9 * a})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(0, ry - 3 * s, W, 6 * s); ctx.globalAlpha = .3 * a; ctx.fillRect(0, ry - 26 * s, W, 52 * s); ctx.restore();
+    }
+    // etiqueta 3D gigante: llega desde la cámara y aterriza con volumen
+    L.lines.forEach((ln, i) => {
+      const a0 = .3 + i * .1, d = .55, e = pr(t, a0, d); if (e <= 0) return;
+      const base = ly + lh * (i + 1) - L.fs * .2, cy = base - L.fs * .36;
+      const push = 1 + .04 * eio(pr(t, a0 + d, 1.3));
+      const pose = k => { const q = eo(cl(k)); return { sc: 1 + (1 - q) * 2.4, a: cl(k * 3) }; };
+      ctx.font = `900 ${L.fs}px ${DISP}`; ctx.textAlign = 'center';
+      if (e < 1) for (let gk = 3; gk >= 1; gk--) { const p = pose(e - gk * .06); if (p.a <= 0) continue; ctx.save(); ctx.globalAlpha = p.a * .14 * (4 - gk) / 3; ctx.translate(W / 2, cy); ctx.scale(p.sc, p.sc); ctx.translate(-W / 2, -cy); ctx.fillStyle = cols[0]; ctx.fillText(ln, W / 2, base); ctx.restore(); }
+      const p = pose(e), lk = e >= 1 ? 1 : eo(cl((e - .5) / .5));
+      ctx.save(); ctx.globalAlpha = p.a; ctx.translate(W / 2, cy); ctx.scale(p.sc * push, p.sc * push); ctx.translate(-W / 2, -cy);
+      const fg = ctx.createLinearGradient(0, base - L.fs * .8, 0, base); fg.addColorStop(0, mix(cols[0], '#ffffff', .5)); fg.addColorStop(.42, cols[0]); fg.addColorStop(.7, cols[1]); fg.addColorStop(1, cols[2]);
+      extrude(ctx, ln, W / 2, base, 26 * s * lk, Math.PI * .3, mix(cols[2], '#06121F', .55), fg, s, lk > .9);
+      const fl = pr(t, a0 + d - .03, .4);
+      if (fl > 0 && fl < 1) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (1 - fl) * .75; ctx.fillStyle = '#ffffff'; ctx.fillText(ln, W / 2, base); }
+      ctx.restore();
+      // brillo que recorre la etiqueta
+      const sw = pr(t, 1.35 + i * .08, .55);
+      if (sw > 0 && sw < 1) {
+        const tw = ctx.measureText(ln).width, sx = W / 2 - tw / 2 + sw * tw * 1.2 - tw * .1, gg = ctx.createLinearGradient(sx - 90 * s, 0, sx + 90 * s, 0);
+        gg.addColorStop(0, 'rgba(255,255,255,0)'); gg.addColorStop(.5, 'rgba(255,255,255,.55)'); gg.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.save(); ctx.translate(W / 2, cy); ctx.scale(push, push); ctx.translate(-W / 2, -cy); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .5; ctx.fillStyle = gg; ctx.fillText(ln, W / 2, base); ctx.restore();
+      }
+    });
+    ctx.textAlign = 'left';
+    // franja bajo la etiqueta: alerta roja en Última hora; fecha en las demás
+    const by = ly + LH + gap2, be = eio(pr(t, 1.0, .45));
+    if (be > 0) {
+      ctx.save(); ctx.font = `800 ${(land ? 32 : 34) * s}px ${COND}`;
+      const txt = (alert ? 'INFORMACIÓN EN DESARROLLO' : (o.date || B.name || '')).toUpperCase(), sp = 6 * s;
+      const tw = spacedW(ctx, txt, sp), dot = alert ? 44 * s : 34 * s, bw = Math.min(W - 2 * M, Math.max(W * .5, tw + dot + 90 * s)), bx = (W - bw) / 2, sk = 20 * s;
+      ctx.beginPath(); ctx.rect(W / 2 - (bw / 2 + sk) * be, by - 4 * s, (bw + 2 * sk) * be, barH + 8 * s); ctx.clip();
+      const shp = () => { ctx.beginPath(); ctx.moveTo(bx + sk, by); ctx.lineTo(bx + bw + sk, by); ctx.lineTo(bx + bw - sk, by + barH); ctx.lineTo(bx - sk, by + barH); ctx.closePath(); };
+      if (alert) {
+        const pulse = .5 + .5 * Math.abs(Math.sin(t * 5));
+        const rg = ctx.createLinearGradient(bx, 0, bx + bw, 0); rg.addColorStop(0, '#B30F2E'); rg.addColorStop(.5, '#E3173E'); rg.addColorStop(1, '#B30F2E');
+        shp(); ctx.fillStyle = rg; ctx.fill(); ctx.globalAlpha = .35 * pulse; ctx.fillStyle = '#FF5A76'; ctx.fill(); ctx.globalAlpha = 1;
+        ctx.fillStyle = `rgba(255,255,255,${.35 + .65 * pulse})`; ctx.beginPath(); ctx.arc(W / 2 - (tw + dot) / 2 + 9 * s, by + barH / 2, 9 * s, 0, 7); ctx.fill();
+        ctx.fillStyle = '#fff'; spaced(ctx, txt, W / 2 - (tw + dot) / 2 + dot, by + barH / 2 + 12 * s, sp, 'left');
+      } else {
+        shp(); ctx.fillStyle = 'rgba(6,18,31,.78)'; ctx.fill(); ctx.lineWidth = 2 * s; ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.stroke();
+        const tl = ctx.createLinearGradient(bx, 0, bx + bw, 0); [...B.cold, ...cols].forEach((c, k, a) => tl.addColorStop(k / (a.length - 1), c)); ctx.fillStyle = tl; ctx.fillRect(bx, by, bw + sk, 5 * s);
+        ctx.fillStyle = cols[1]; ctx.fillRect(W / 2 - (tw + dot) / 2, by + barH / 2 - 7 * s, 14 * s, 14 * s);
+        ctx.fillStyle = '#EAF2FA'; spaced(ctx, txt, W / 2 - (tw + dot) / 2 + dot, by + barH / 2 + 12 * s, sp, 'left');
+      }
+      ctx.restore();
+    }
+    if (dateH) { const a = pr(t, 1.25, .4); ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#B9CBDD'; ctx.font = `700 ${30 * s}px ${COND}`; spaced(ctx, o.date.toUpperCase(), W / 2, by + barH + 50 * s, 5 * s, 'center'); ctx.restore(); }
+    // alerta de última hora: franjas rojas que laten arriba y abajo
+    if (alert) { const a = .5 + .5 * Math.abs(Math.sin(t * 5)); ctx.save(); ctx.globalAlpha = a * eo(pr(t, CORT.HIT, .3)); ctx.fillStyle = '#E3173E'; ctx.fillRect(0, 0, W, 12 * s); ctx.fillRect(0, H - 12 * s, W, 12 * s); ctx.restore(); }
+    else { const tg = ctx.createLinearGradient(0, 0, W, 0); [...B.cold, ...B.hot].forEach((c, k, a) => tg.addColorStop(k / (a.length - 1), c)); ctx.fillStyle = tg; ctx.fillRect(0, 0, W * eio(pr(t, 0, .9)), 8 * s); }
+    particles(ctx, W, 0, H, s, cols[1], 17, t * 1.3, 14, 4.2, 30);
+    ctx.restore();
+  }
+  // CIERRE: ~2.6 s con el logo, eslogan y redes
+  function outro(ctx, W, H, o, t) {
+    const B = makeBrand(o.brand), cols = B.hot, land = W > H, s = scl(W, H), M = (land ? 90 : 60) * s;
+    ctx.save(); ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+    cortBg(ctx, W, H, s, B, cols[1], t + 4);
+    const lw = Math.min(W - 2 * M, (land ? 520 : 600) * s), lh = logoBox(B, lw)[1];
+    const sl = sloganParts(B), hasSl = sl.length > 0, hd = (B.handle || '').toUpperCase();
+    const tot = lh + (hasSl ? 110 * s : 0) + (hd ? 80 * s : 0), y0 = (H - tot) / 2 - 10 * s, cy = y0 + lh / 2;
+    ribbon(ctx, W, s, B.cold, [[-80 * s, cy + 200 * s], [W * .3, cy - 100 * s], [W * .66, cy + 280 * s], [W + 80 * s, cy + 20 * s]], 18, 5, .5, t * 1.1 + 2, 1, true);
+    ribbon(ctx, W, s, cols, [[-80 * s, cy - 180 * s], [W * .36, cy + 120 * s], [W * .6, cy - 260 * s], [W + 80 * s, cy - 10 * s]], 16, 9, .5, t * 1.1 + 3, 1, true);
+    particles(ctx, W, 0, H, s, cols[1], 29, t * 1.4 + 3, 50, 1.2, 36);
+    const e = pr(t, .26, .6), k = e <= 0 ? 0 : .25 + .75 * back(e), lk = pr(t, CORT.LAND, 1);
+    glowAt(ctx, W, H, W / 2, cy, lw * 1.05, B.cold[1], cl(e * 2) * (.28 + .4 * (1 - lk)));
+    glowAt(ctx, W, H, W / 2, cy + lh * .1, lw * .8, cols[1], cl(e * 2) * (.16 + .3 * (1 - lk)));
+    if (e > 0) { ctx.save(); ctx.globalAlpha = cl(e * 2.5); ctx.translate(W / 2, cy); ctx.scale(k, k); ctx.translate(-W / 2, -cy); logoAt(ctx, B, W / 2, y0, lw, { glow: true, maxW: W - 2 * M }); ctx.restore(); }
+    // onda de luz cuando el logo aterriza
+    const rk = pr(t, CORT.LAND, .8);
+    if (rk > 0 && rk < 1) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = rgba(B.cold[0], (1 - rk) * .75); ctx.lineWidth = 7 * s * (1 - rk) + 1; ctx.beginPath(); ctx.ellipse(W / 2, cy, lw * (.78 + rk * .6), lw * (.78 + rk * .6) * .6, 0, 0, 7); ctx.stroke(); ctx.restore(); }
+    // brillo que cruza el logo
+    const sw = pr(t, 1.05, .7);
+    if (sw > 0 && sw < 1) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const sx = W / 2 - lw * .7 + sw * lw * 1.4; const g = ctx.createLinearGradient(sx - 70 * s, 0, sx + 70 * s, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,.22)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.translate(sx, cy); ctx.transform(1, 0, -.35, 1, 0, 0); ctx.translate(-sx, -cy); ctx.fillRect(sx - 70 * s, y0 - 20 * s, 140 * s, lh + 40 * s); ctx.restore(); }
+    let y = y0 + lh + 40 * s;
+    if (hasSl) {
+      const a = eo(pr(t, 1.0, .5)); let fs = (land ? 40 : 44) * s, sp = 6 * s;
+      ctx.font = `700 ${fs}px ${COND}`; let tw = sl.reduce((acc, [tx]) => acc + spacedW(ctx, tx.toUpperCase(), sp) + sp, -sp);
+      if (tw > W - 2 * M) { const kk = (W - 2 * M) / tw; fs *= kk; sp *= kk; ctx.font = `700 ${fs}px ${COND}`; tw *= kk; }
+      ctx.save(); ctx.globalAlpha = a; ctx.translate(0, (1 - a) * 24 * s); let x = W / 2 - tw / 2;
+      sl.forEach(([tx, ac]) => { ctx.fillStyle = ac ? cols[1] : '#EAF2FA'; x += spaced(ctx, tx.toUpperCase(), x, y + fs * .9, sp, 'left') + sp; });
+      ctx.restore(); y += 70 * s;
+    }
+    const la = eio(pr(t, 1.2, .5));
+    if (la > 0) { const lg = ctx.createLinearGradient(W / 2 - 160 * s, 0, W / 2 + 160 * s, 0); lg.addColorStop(0, B.cold[0]); lg.addColorStop(.5, B.cold[1]); lg.addColorStop(.5, cols[0]); lg.addColorStop(1, cols[2]); ctx.fillStyle = lg; ctx.fillRect(W / 2 - 160 * s * la, y, 320 * s * la, 4 * s); }
+    if (hd) { const a = eo(pr(t, 1.3, .5)); ctx.save(); ctx.globalAlpha = a; ctx.font = `800 ${(land ? 34 : 38) * s}px ${COND}`; ctx.fillStyle = '#FFFFFF'; spaced(ctx, hd, W / 2, y + 58 * s, 7 * s, 'center'); ctx.restore(); }
+    const tg = ctx.createLinearGradient(0, 0, W, 0); [...B.cold, ...B.hot].forEach((c, i, a) => tg.addColorStop(i / (a.length - 1), c)); ctx.fillStyle = tg; ctx.fillRect(0, H - 8 * s, W, 8 * s);
+    const fo = pr(t, CORT.DO - .42, .42); if (fo > 0) { ctx.fillStyle = `rgba(3,9,16,${fo})`; ctx.fillRect(0, 0, W, H); }
+    ctx.restore();
+  }
+  // barrido de placas de color en diagonal (tren: frío, cálido, placa oscura con logo, cálido, frío); p 0..1, 0.5 = pantalla cubierta
+  function slabs(ctx, W, H, p, o) {
+    if (p <= 0 || p >= 1) return;
+    const B = makeBrand(o.brand), f = FAM[o.fam] || FAM.general, hot = f.ribbon || B.hot, s = scl(W, H);
+    const k = Math.min(H * .3, W * .45), mg = 40 * s, w1 = Math.max(W, H) * .07, w2 = Math.max(W, H) * .12, Wd = W + k + 2 * mg;
+    const segs = [[0, w1, 'c'], [w1, w1 + w2, 'h'], [w1 + w2, w1 + w2 + Wd, 'd'], [w1 + w2 + Wd, 2 * w2 + w1 + Wd, 'h'], [2 * w2 + w1 + Wd, 2 * w2 + 2 * w1 + Wd, 'c']];
+    const L = segs[4][1], Fs = -k, Fm = W + mg + w1 + w2, Fe = W + L + 10;
+    const qa = x => .4 * x + .6 * (1 - Math.pow(1 - x, 2)), qb = x => .4 * x + .6 * x * x;
+    const F = p < .5 ? Fs + (Fm - Fs) * qa(p / .5) : Fm + (Fe - Fm) * qb((p - .5) / .5);
+    const fc = lgrad(ctx, 0, W, B.cold), fh = lgrad(ctx, 0, W, hot);
+    ctx.save();
+    // de atrás hacia adelante, para que cada borde delantero quede encima
+    for (let i = segs.length - 1; i >= 0; i--) {
+      const [a0, a1, ty] = segs[i], xl = F - a1, xr = F - a0;
+      if (xr + k < 0 || xl > W) continue;
+      const path = new Path2D(); path.moveTo(xl, H); path.lineTo(xl + k, 0); path.lineTo(xr + k, 0); path.lineTo(xr, H); path.closePath();
+      if (ty === 'd') {
+        const dg = ctx.createLinearGradient(0, 0, W, H); dg.addColorStop(0, '#0E2A45'); dg.addColorStop(1, '#06121F'); ctx.fillStyle = dg; ctx.fill(path);
+        ctx.save(); ctx.clip(path); const mw = Math.min(W, H) * .3; glowAt(ctx, W, H, W / 2, H / 2, mw * 1.4, B.cold[1], .4); glowAt(ctx, W, H, W / 2, H / 2, mw * .9, hot[1], .18);
+        if (B.une) uneLogo(ctx, W / 2 - mw / 2, H / 2 - mw * 1000 / 1498 / 2, mw, { word: false, glow: true });
+        else { const lh = logoBox(B, mw)[1]; logoAt(ctx, B, W / 2, H / 2 - lh / 2, mw, { maxW: W * .7 }); }
+        ctx.restore();
+      } else { ctx.fillStyle = ty === 'c' ? fc : fh; ctx.fill(path); }
+      // filo de luz en el borde delantero
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = '#ffffff'; ctx.globalAlpha = ty === 'd' ? .9 : .6; ctx.lineWidth = (ty === 'd' ? 5 : 3) * s; ctx.shadowColor = ty === 'c' ? B.cold[0] : hot[1]; ctx.shadowBlur = 26 * s;
+      ctx.beginPath(); ctx.moveTo(xr, H); ctx.lineTo(xr + k, 0); ctx.stroke(); ctx.restore();
+    }
+    ctx.restore();
+  }
+
   const SIZES = { post: [1080, 1350], cuadrado: [1080, 1080], historia: [1080, 1920], horizontal: [1920, 1080] };
-  G.UNE = { draw, logo: uneLogo, FAM, SIZES, DUR };
+  G.UNE = { draw, logo: uneLogo, FAM, SIZES, DUR, CORT, intro, outro, slabs, makeBrand };
 })(window);
 </script>
 <script>
@@ -871,6 +1104,7 @@ const NEED = { clasico: 1, cristal: 2, impacto: 3 };
 let mode = 'foto', fmt = 'post', fam = 'general', style = 'impacto', tier = 'pro', media = null, busy = false, dl = null, playing = true, t0 = performance.now();
 let brand = { une: true };
 let sponsors = [{}, {}, {}], adOn = false, adPick = 0, clips = [];
+let photos = [], addMore = false, cortina = 'seccion', sound = 'noticiero', secs = 6;
 const MAXMIN = { basico: 3, premium: 10, pro: 60 };
 function sponsorAt(i) { const sp = sponsors[i]; return sp && (sp.name || sp.msg || sp.logoImg) ? sp : null; }
 function activeSponsors() { return [0, 1, 2].map(sponsorAt).filter(Boolean); }
@@ -931,9 +1165,17 @@ function applyTier() {
   $('#adLock').textContent = lvl() >= 3 ? (adOn ? 'Activa' : 'Editable') : 'Pro';
   document.querySelectorAll('#adBox input,#adBox button').forEach(e => e.disabled = lvl() < 3);
   $('#clipBox').hidden = !(mode === 'video' && lvl() >= 3);
-  $('#file').multiple = mode === 'video' && lvl() >= 3;
+  $('#file').multiple = lvl() >= 3;
+  const pro = lvl() >= 3;
+  $('#newsBox').hidden = mode !== 'foto'; $('#goNews').hidden = mode !== 'foto';
+  $('#newsLock').textContent = pro ? 'Editable' : 'Pro';
+  document.querySelectorAll('#newsBox button').forEach(e => e.disabled = !pro);
+  $('#goNews').innerHTML = pro ? 'Descargar video noticia (MP4)' : 'Video noticia con cortina <span class="tag">Pro</span>';
+  $('#photoBox').hidden = !(mode === 'foto' && pro && photos.length > 0);
+  if (mode === 'foto') $('#fileS').textContent = pro ? 'JPG o PNG · puedes elegir hasta 8 fotos para el video noticia' : 'JPG o PNG desde tu teléfono o computadora';
+  newsInfo();
   if (mode === 'video') $('#fileS').textContent = 'MP4 o MOV · hasta ' + MAXMIN[tier] + ' minutos en total' + (lvl() >= 3 ? ' · puedes elegir varios' : '');
-  $('#tierTxt').textContent = { basico: 'Diseño Clásico, fotos y videos con marco, IA.', premium: 'Agrega Cristal 3D y piezas con movimiento.', pro: 'Todo: Impacto 4D, publicidad, varios videos unidos y marca editable.' }[tier] + (tier === 'pro' ? ' Este es el plan de UNE Visión.' : ' (Vista para mostrar a los medios.)');
+  $('#tierTxt').textContent = { basico: 'Diseño Clásico, fotos y videos con marco y redacción automática.', premium: 'Agrega Cristal 3D y piezas con movimiento.', pro: 'Todo: Impacto 4D, video noticia con cortinas y sonido, publicidad, varios videos unidos y marca editable.' }[tier] + (tier === 'pro' ? ' Este es el plan de UNE Visión.' : ' (Vista para mostrar a los medios.)');
   ls.set('une_tier2', tier); t0 = performance.now(); refresh();
 }
 document.querySelectorAll('#tier button').forEach(b => b.onclick = () => { tier = b.dataset.t; applyTier(); });
@@ -948,7 +1190,7 @@ document.querySelectorAll('#sty button').forEach(b => b.onclick = () => {
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   if (busy) return;
   document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
-  mode = b.dataset.mode; media = null; clips = []; renderClips(); $('#file').value = ''; placeholderImg.c = null;
+  mode = b.dataset.mode; media = null; clips = []; renderClips(); photos = []; renderPhotos(); $('#file').value = ''; placeholderImg.c = null;
   $('#file').accept = mode === 'foto' ? 'image/*' : 'video/*';
   $('#fileT').textContent = mode === 'foto' ? 'Elegir foto' : 'Elegir video';
   $('#fileS').textContent = mode === 'foto' ? 'JPG o PNG desde tu teléfono o computadora' : 'MP4 o MOV · recomendado hasta 3 minutos';
@@ -963,10 +1205,19 @@ $('#replay').onclick = () => { playing = true; $('#play').setAttribute('aria-pre
 
 $('#file').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
-  const url = URL.createObjectURL(f);
   if (mode === 'foto') {
-    const im = new Image(); im.src = url;
-    try { await im.decode(); media = im; $('#fileT').textContent = f.name; st.textContent = ''; } catch (_) { st.textContent = 'No se pudo abrir esa imagen. Prueba con un JPG o PNG.'; }
+    const pro = lvl() >= 3, append = pro && addMore; addMore = false;
+    const room = pro ? 8 - (append ? photos.length : 0) : 1, all = [...e.target.files], list = all.slice(0, Math.max(0, room)), added = [];
+    for (const fl of list) {
+      const url = URL.createObjectURL(fl), im = new Image(); im.src = url;
+      try { await im.decode(); added.push({ name: fl.name, img: im, url }); } catch (_) { st.textContent = 'No se pudo abrir ' + fl.name + '. Prueba con un JPG o PNG.'; }
+    }
+    $('#file').value = '';
+    if (!added.length) { if (pro && append && list.length === 0) st.textContent = 'Ya tienes 8 fotos: es el máximo del video noticia.'; return; }
+    photos = append ? photos.concat(added) : added;
+    media = photos[0].img; $('#fileT').textContent = photos.length > 1 ? photos.length + ' fotos' : photos[0].name;
+    st.textContent = all.length > list.length ? 'Se usan hasta 8 fotos en el video noticia.' : '';
+    renderPhotos(); applyTier();
   } else {
     const files = [...e.target.files]; const added = [];
     st.textContent = 'Abriendo ' + (files.length > 1 ? files.length + ' videos…' : 'el video…');
@@ -1043,7 +1294,7 @@ function pickType() {
   const types = ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
   return (window.MediaRecorder && types.find(t => MediaRecorder.isTypeSupported(t))) || '';
 }
-function lockUI(on) { busy = on; ['#go', '#goAnim', '#frameBtn'].forEach(s => $(s).disabled = on); if (!on) applyTier(); }
+function lockUI(on) { busy = on; ['#go', '#goAnim', '#frameBtn', '#goNews', '#sndTest', '#addPh'].forEach(s => $(s).disabled = on); if (!on) applyTier(); }
 
 // post animado: 8 s de la pieza con movimiento, grabado en tiempo real
 async function recordMotion() {
@@ -1104,6 +1355,180 @@ async function recordVideo() {
   await save(new Blob(parts, { type: type.split(';')[0] }), slug() + '-' + fmt + '.' + ext);
   if (ext === 'webm') st.textContent += ' (formato WebM: Facebook lo acepta; si tu teléfono no lo abre, conviértelo a MP4).';
 }
+
+// ---------- fotos del video noticia (Pro) ----------
+function renderPhotos() {
+  const box = $('#photos'); box.innerHTML = '';
+  photos.forEach((k, i) => {
+    const d = document.createElement('div'); d.className = 'clip ph';
+    d.innerHTML = `<span class="n">${i + 1}</span><img alt="" src="${k.url}"><span class="nm">${k.name.replace(/</g, '&lt;')}<small>${i === 0 ? 'Primera foto' : 'Foto ' + (i + 1)}</small></span><span class="bt"><button type="button" aria-label="Subir" data-a="up">↑</button><button type="button" aria-label="Bajar" data-a="down">↓</button><button type="button" aria-label="Quitar" data-a="del">✕</button></span>`;
+    d.querySelectorAll('button').forEach(b => b.onclick = () => {
+      if (busy) return; const a = b.dataset.a;
+      if (a === 'up' && i > 0) [photos[i - 1], photos[i]] = [photos[i], photos[i - 1]];
+      if (a === 'down' && i < photos.length - 1) [photos[i + 1], photos[i]] = [photos[i], photos[i + 1]];
+      if (a === 'del') photos.splice(i, 1);
+      media = photos.length ? photos[0].img : null;
+      $('#fileT').textContent = !photos.length ? 'Elegir foto' : photos.length > 1 ? photos.length + ' fotos' : photos[0].name;
+      renderPhotos(); applyTier();
+    });
+    box.appendChild(d);
+  });
+}
+$('#addPh').onclick = () => { if (busy || lvl() < 3) return; if (photos.length >= 8) { st.textContent = 'Ya tienes 8 fotos: es el máximo del video noticia.'; return; } addMore = true; $('#file').click(); };
+
+// ---------- video noticia con cortina (Pro) ----------
+function newsPlan() {
+  const C = UNE.CORT, n = Math.max(1, photos.length), N = secs, cort = cortina !== 'none';
+  const DI = cort ? C.DI : 0, DO = cort ? C.DO : 0, P0 = DI, P1 = DI + n * N, trans = [];
+  for (let k = cort ? 0 : 1; k <= (cort ? n : n - 1); k++) trans.push(DI + k * N);
+  return { n, N, cort, DI, DO, P0, P1, total: P1 + DO, trans, hit: cort ? C.HIT : null, outroHit: cort ? P1 + C.LAND : null,
+    famKey: cortina === 'seccion' ? fam : cortina === 'noticiero' ? 'noticias' : 'ultima' };
+}
+function newsInfo() {
+  const el = $('#newsInfo'); if (!el) return;
+  if (lvl() < 3) { el.textContent = 'Disponible en el plan Pro.'; return; }
+  const P = newsPlan(), n = photos.length;
+  el.textContent = (n ? n + (n > 1 ? ' fotos' : ' foto') : 'Sin fotos todavía') + ' · el video dura unos ' + Math.round(P.total) + ' segundos.';
+}
+function newsFrame(ctx, W, H, g, P) {
+  const co = { brand: lvl() >= 3 ? brand : { une: true }, fam: P.famKey, date: $('#date').value };
+  if (g < P.P0) UNE.intro(ctx, W, H, co, g);
+  else if (g < P.P1) {
+    const k = Math.min(P.n - 1, Math.floor((g - P.P0) / P.N)), lt = g - P.P0 - k * P.N, u = cl01(lt / P.N), ph = photos[k] || photos[0];
+    const z0 = +$('#zoom').value, dir = k % 2 === 0; // acercamiento lento tipo Ken Burns
+    const zoom = z0 * (dir ? 1 + .1 * u : 1.1 - .1 * u), fx = .5 + (dir ? -1 : 1) * .16 * (u - .5);
+    UNE.draw(ctx, W, H, opts(Object.assign({ img: ph ? ph.img : media, zoom, fx }, adRot(g - P.P0))), k === 0 ? lt : UNE.DUR + lt);
+  } else UNE.outro(ctx, W, H, co, g - P.P1);
+  const TR = UNE.CORT.TR;
+  P.trans.forEach(c => { if (Math.abs(g - c) < TR / 2) UNE.slabs(ctx, W, H, (g - c) / TR + .5, co); });
+}
+function cl01(x) { return Math.min(1, Math.max(0, x)); }
+async function recordNews(ac) {
+  const type = pickType(); if (!type) { st.textContent = 'Este navegador no puede grabar video. Usa Chrome.'; try { ac && ac.close(); } catch (_) {} return; }
+  const [W, H] = size(), P = newsPlan();
+  lockUI(true); cancelAnimationFrame(raf);
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d');
+  const stream = c.captureStream(30); let dest = null;
+  if (ac) { try { if (ac.state !== 'running') await ac.resume(); dest = ac.createMediaStreamDestination(); dest.stream.getAudioTracks().forEach(t => stream.addTrack(t)); } catch (_) { dest = null; } }
+  const rec = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 10e6, audioBitsPerSecond: 192e3 });
+  const parts = []; rec.ondataavailable = e => e.data.size && parts.push(e.data);
+  const bar = $('#bar'), bi = bar.querySelector('i'); bar.style.display = 'block';
+  newsFrame(ctx, W, H, 0, P); rec.start(500);
+  const lead = .1, s0 = performance.now() + lead * 1000;
+  if (dest) { try { buildScore(ac, dest, sound, { t0: ac.currentTime + lead, hit: P.hit, trans: P.trans, outroHit: P.outroHit, une: !(lvl() >= 3 && !brand.une), end: P.total }); } catch (e) { console.warn(e); } }
+  const D = P.total + .08;
+  await new Promise(done => {
+    const tick = () => {
+      const g = Math.max(0, (performance.now() - s0) / 1000);
+      newsFrame(ctx, W, H, Math.min(g, P.total - .001), P);
+      pctx.setTransform(1, 0, 0, 1, 0, 0); pctx.drawImage(c, 0, 0, prev.width, prev.height);
+      bi.style.width = Math.min(100, 100 * g / D) + '%'; st.textContent = 'Creando el video noticia… ' + Math.min(100, Math.round(100 * g / D)) + '%. No cierres la página.';
+      if (g >= D) return done(); requestAnimationFrame(tick);
+    };
+    tick();
+  });
+  await new Promise(r => { rec.onstop = r; rec.stop(); });
+  try { ac && ac.close(); } catch (_) {}
+  bar.style.display = 'none'; lockUI(false);
+  const ext = type.startsWith('video/mp4') ? 'mp4' : 'webm';
+  await save(new Blob(parts, { type: type.split(';')[0] }), slug() + '-video-noticia-' + fmt + '.' + ext);
+  if (ext === 'webm') st.textContent += ' (WebM: Facebook lo acepta; si tu teléfono no lo abre, conviértelo a MP4).';
+}
+function newAC() { try { const ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); return ac; } catch (_) { return null; } }
+$('#goNews').onclick = () => {
+  if (lvl() < 3) { st.textContent = 'El video noticia con cortina y sonido es del plan Pro.'; $('#planes').scrollIntoView({ behavior: 'smooth' }); return; }
+  if (mode !== 'foto' || busy) return;
+  if (!photos.length) { st.textContent = 'Primero elige las fotos de la noticia.'; return; }
+  const ac = sound === 'none' ? null : newAC(); // se crea dentro del toque: requisito del iPhone
+  recordNews(ac);
+};
+let testAc = null;
+$('#sndTest').onclick = () => {
+  if (lvl() < 3 || busy) return;
+  if (sound === 'none') { st.textContent = 'Elegiste "Sin sonido": el video sale sin audio.'; return; }
+  try { testAc && testAc.close(); } catch (_) {}
+  const ac = newAC(); if (!ac) { st.textContent = 'Este navegador no puede reproducir el sonido.'; return; }
+  testAc = ac; st.textContent = 'Sonando: ' + { noticiero: 'Noticiero', impacto: 'Impacto', suave: 'Suave' }[sound] + '…';
+  const go = () => buildScore(ac, ac.destination, sound, { t0: ac.currentTime + .05, hit: .7, trans: [2.15], outroHit: null, une: true, end: 3 });
+  if (ac.state === 'running') go(); else ac.resume().then(go).catch(() => {});
+  setTimeout(() => { try { ac.close(); } catch (_) {} if (testAc === ac) { testAc = null; st.textContent = ''; } }, 3500);
+};
+function saveNews() { ls.set('une_news', JSON.stringify({ cortina, sound, secs })); }
+function setChip(id, v) { document.querySelectorAll(id + ' button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === String(v))); }
+chips('#cort', v => { cortina = v; saveNews(); newsInfo(); });
+chips('#snd', v => { sound = v; saveNews(); });
+chips('#secs', v => { secs = +v; saveNews(); newsInfo(); });
+
+// ---------- sonido del video noticia: sintetizado en el navegador, sin archivos ----------
+function noiseBuf(ac) {
+  if (ac.__nb) return ac.__nb;
+  const n = ac.sampleRate * 2, b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+  return ac.__nb = b;
+}
+// P: { t0 (tiempo del AudioContext), hit, trans[], outroHit, une, end } — todo en segundos desde t0
+function buildScore(ac, out, kind, P) {
+  const T = x => P.t0 + Math.max(0, x), nb = noiseBuf(ac), heavy = kind === 'impacto', soft = kind === 'suave';
+  // cadena maestra: compresor + ganancia + limitador, picos por debajo de −1 dBFS
+  const bus = ac.createGain();
+  const comp = ac.createDynamicsCompressor(); comp.threshold.value = -24; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = .005; comp.release.value = .25;
+  const mk = ac.createGain(); mk.gain.value = SND_MK[kind] || 2;
+  const lim = ac.createDynamicsCompressor(); lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .12;
+  const fin = ac.createGain(); fin.gain.value = SND_FIN;
+  bus.connect(comp); comp.connect(mk); mk.connect(lim); lim.connect(fin); fin.connect(out);
+  const music = ac.createGain(); music.connect(bus);
+  const Gn = (dest, t0, a, peak, dec, hold = 0) => { const n = ac.createGain(); n.gain.setValueAtTime(0, t0); n.gain.linearRampToValueAtTime(peak, t0 + a); if (hold) n.gain.setValueAtTime(peak, t0 + a + hold); n.gain.exponentialRampToValueAtTime(.0001, t0 + a + hold + dec); n.connect(dest); return n; };
+  const Os = (type, f, t0, t1, dest, det = 0) => { const o = ac.createOscillator(); o.type = type; o.frequency.value = f; if (det) o.detune.value = det; o.connect(dest); o.start(t0); o.stop(t1); return o; };
+  const Nz = (t0, dur, dest) => { const s = ac.createBufferSource(); s.buffer = nb; s.loop = true; s.connect(dest); s.start(t0, Math.random() * 1.5); s.stop(t0 + dur); return s; };
+  const Fl = (type, f, q, dest) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; b.connect(dest); return b; };
+  const tick = (t, v, acc) => { Nz(t, .06, Fl('bandpass', acc ? 4200 : 3100, 6, Gn(music, t, .0008, v, .05))); Os('sine', acc ? 2600 : 1900, t, t + .06, Gn(music, t, .0008, v * .5, .03)); };
+  const kick = (t, v, dest = music) => { const o = Os('sine', 160, t, t + .5, Gn(dest, t, .002, v, .42)); o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(42, t + .14); Nz(t, .03, Fl('highpass', 2500, .7, Gn(dest, t, .001, v * .2, .02))); };
+  const clap = (t, v) => { Nz(t, .2, Fl('bandpass', 1700, 1.2, Gn(music, t, .002, v, .16))); };
+  const bass = (t, f, v, len = .42) => { const e = Gn(music, t, .006, v, len), lp = Fl('lowpass', 900, 3, e); lp.frequency.setValueAtTime(1100, t); lp.frequency.exponentialRampToValueAtTime(200, t + len); Os('sawtooth', f, t, t + len + .05, lp); Os('sine', f, t, t + len + .05, e); };
+  const pad = (t0, t1, fr, v) => { const n = ac.createGain(); n.gain.setValueAtTime(0, t0); n.gain.linearRampToValueAtTime(v, t0 + .45); n.gain.setValueAtTime(v, t1); n.gain.linearRampToValueAtTime(0, t1 + .7); n.connect(music); const lp = Fl('lowpass', soft ? 1300 : 950, .6, n); fr.forEach(f => { Os('sawtooth', f, t0, t1 + .75, lp, -8); Os('sawtooth', f, t0, t1 + .75, lp, 8); }); };
+  const pluck = (t, f, v) => { const e = Gn(music, t, .006, v, .55); Os('triangle', f, t, t + .6, Fl('lowpass', 2600, .5, e)); Os('sine', f * 2, t, t + .4, Gn(music, t, .004, v * .25, .3)); };
+  const riser = (t0, t1, v) => { const e = ac.createGain(); e.gain.setValueAtTime(.0001, t0); e.gain.exponentialRampToValueAtTime(v, t1); e.gain.linearRampToValueAtTime(0, t1 + .04); e.connect(bus); const bp = Fl('bandpass', 300, 1.6, e); bp.frequency.setValueAtTime(300, t0); bp.frequency.exponentialRampToValueAtTime(soft ? 3500 : 7500, t1); Nz(t0, t1 - t0 + .05, bp); const lp = Fl('lowpass', 1800, .7, e); const o = Os('sawtooth', 110, t0, t1 + .05, Gn(lp, t0, t1 - t0, .25, .05)); o.frequency.setValueAtTime(110, t0); o.frequency.exponentialRampToValueAtTime(880, t1); };
+  const braam = (t, v, dur) => { const e = Gn(bus, t, .03, v, dur), lp = Fl('lowpass', 160, 5, e); lp.frequency.setValueAtTime(160, t); lp.frequency.exponentialRampToValueAtTime(1500, t + .18); lp.frequency.exponentialRampToValueAtTime(240, t + dur); [36.71, 73.42, 110, 146.83].forEach(f => { Os('sawtooth', f, t, t + dur + .1, lp, -10); Os('sawtooth', f, t, t + dur + .1, lp, 10); }); };
+  const hit = (t, v, big) => {
+    const o = Os('sine', 120, t, t + 1.7, Gn(bus, t, .002, v, 1.5)); o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(34, t + .7);
+    Nz(t, .45, Fl('lowpass', 2600, .7, Gn(bus, t, .001, v * .6, .32)));
+    Nz(t, 1.5, Fl('highpass', 6500, .7, Gn(bus, t, .002, v * .2, 1.3)));
+    const sl = Fl('lowpass', 2400, .7, Gn(bus, t, .004, v * .16, 1)); [146.83, 220, 293.66, 349.23].forEach(f => { Os('sawtooth', f, t, t + 1.1, sl, -6); Os('sawtooth', f, t, t + 1.1, sl, 6); });
+    if (big) braam(t, v * .7, 1.7);
+  };
+  const whoosh = (tc, v, dur) => {
+    const t0 = tc - dur * .55, t1 = tc + dur * .45, e = ac.createGain(); e.gain.setValueAtTime(0, t0); e.gain.linearRampToValueAtTime(v, tc); e.gain.linearRampToValueAtTime(0, t1);
+    let tail = e; if (ac.createStereoPanner) { const pn = ac.createStereoPanner(); pn.pan.setValueAtTime(-.8, t0); pn.pan.linearRampToValueAtTime(.8, t1); e.connect(pn); pn.connect(bus); } else e.connect(bus);
+    const bp = Fl('bandpass', 400, 1.1, e); bp.frequency.setValueAtTime(380, t0); bp.frequency.exponentialRampToValueAtTime(heavy ? 3200 : 4200, tc); bp.frequency.exponentialRampToValueAtTime(500, t1); Nz(t0, dur + .05, bp);
+  };
+  const bell = (t, f, v) => { [[1, 1, 2.8], [2.005, .5, 1.7], [3.01, .26, 1], [4.16, .13, .6], [5.43, .07, .4]].forEach(([m, a, d]) => Os('sine', f * m, t, t + d + .1, Gn(bus, t, .002, v * a, d))); };
+
+  const beat = .5, H0 = P.hit, mStart = H0 != null ? H0 : .05, mEnd = P.outroHit != null ? P.outroHit : P.end;
+  const CH = [[146.83, 174.61, 220], [116.54, 146.83, 174.61], [98, 116.54, 146.83], [110, 138.59, 164.81]]; // Rem · Sib · Solm · La
+  const BS = [73.42, 58.27, 49, 55];
+  const ARP = [[293.66, 349.23, 440, 587.33], [233.08, 293.66, 349.23, 466.16], [196, 233.08, 293.66, 392], [220, 277.18, 329.63, 440]];
+  const chordAt = x => ((Math.floor((x - (mStart - 2)) / 2) + 3) % 4 + 4) % 4;
+  // colchón armónico
+  for (let tb = mStart - 2; tb < mEnd - .2; tb += 2) { const a = Math.max(0, tb), b = Math.min(tb + 2, mEnd); if (b - a < .3) continue; pad(T(a), T(b), CH[chordAt(tb + .01)], soft ? .05 : heavy ? .03 : .04); }
+  // pulso
+  for (let i = 0, x = mStart; x < mEnd - .05; i++, x += beat) {
+    const c = chordAt(x), t = T(x);
+    if (kind === 'noticiero') { tick(t, .3, i % 4 === 0); tick(T(x + .25), .09, false); bass(t, BS[c], .34); if (i % 4 === 0) kick(t, .5); }
+    else if (heavy) { kick(t, .9); tick(T(x + .25), .14, false); bass(t, BS[c], .4); if (i % 2 === 1) clap(t, .35); }
+    else { pluck(t, ARP[c][(i * 2) % 4], .11); pluck(T(x + .25), ARP[c][(i * 2 + 1) % 4], .08); if (i % 4 === 0) bass(t, BS[c], .22, 1.8); }
+  }
+  // golpes y efectos
+  if (H0 != null) { riser(T(Math.max(0, H0 - 1.3)), T(H0), soft ? .12 : heavy ? .4 : .3); hit(T(H0), soft ? .4 : heavy ? 1 : .85, heavy); if (soft) bell(T(H0), 587.33, .2); }
+  P.trans.forEach(c => { whoosh(T(c), soft ? .3 : heavy ? .85 : .6, heavy ? .8 : .66); if (heavy) { braam(T(c), .32, .9); kick(T(c), .7, bus); } else if (!soft) kick(T(c), .35, bus); });
+  if (P.outroHit != null) {
+    const oh = P.outroHit; hit(T(oh), soft ? .35 : heavy ? .95 : .8, heavy);
+    const notes = P.une ? [440, 587.33, 739.99, 880] : [587.33, 880];
+    notes.forEach((f, i) => bell(T(oh + i * .16), f, soft ? .3 : .34));
+    music.gain.setValueAtTime(1, T(mEnd - .05)); music.gain.linearRampToValueAtTime(0, T(mEnd + .45));
+  } else { music.gain.setValueAtTime(1, T(P.end - 1.2)); music.gain.linearRampToValueAtTime(0, T(P.end)); }
+  bus.gain.setValueAtTime(1, T(P.end - .35)); bus.gain.linearRampToValueAtTime(0, T(P.end));
+}
+const SND_MK = { noticiero: 1.13, impacto: 1.08, suave: 1.07 }, SND_FIN = .89;
 
 // rotación de patrocinadores en video: cambia cada 8 s
 function adRot(g) {
@@ -1221,7 +1646,7 @@ $('#bLogo').addEventListener('change', e => {
 });
 $('#bReset').onclick = () => { brand = { une: true }; ls.set('une_brand', 'null'); ['#bName', '#bHandle', '#bSlogan'].forEach(s => $(s).value = ''); $('#bLogoT').textContent = 'Subir logo (PNG transparente)'; refresh(); };
 
-// ---------- redacción con IA (Google Gemini, gratis, clave propia) ----------
+// ---------- redacción automática (Google Gemini, clave propia) ----------
 let aiCtl = null;
 const FAMS = { general: 'General', noticias: 'Noticias', ultima: 'Última hora', deportes: 'Deportes', musica: 'Música', gente: 'Nuestra gente', comunicado: 'Comunicado' };
 const API = 'https://generativelanguage.googleapis.com/v1beta/';
@@ -1230,8 +1655,8 @@ function keyUI() {
   const k = ls.get('une_gkey');
   $('#keyBox').open = !k;
   $('#key').value = k ? k.slice(0, 6) + '•••••••••••' + k.slice(-4) : '';
-  $('#aiSt').textContent = k ? 'La IA arma el titular, la sección, la línea extra y el texto. Usa solo los datos que pegues.'
-    : 'Primero configura la IA gratis (abajo). Es una sola vez.';
+  $('#aiSt').textContent = k ? 'El sistema arma el titular, la sección, la línea extra y el texto. Usa solo los datos que pegues.'
+    : 'Primero activa la redacción automática (abajo). Es una sola vez.';
 }
 $('#keySave').onclick = async () => {
   const k = $('#key').value.trim();
@@ -1316,7 +1741,7 @@ async function askGemini(key, prompt, again, signal) {
 }
 async function runAI(again) {
   const raw = $('#raw').value.trim(), key = ls.get('une_gkey');
-  if (!key) { $('#keyBox').open = true; $('#aiSt').textContent = 'Primero configura la IA gratis (abajo). Es una sola vez.'; return; }
+  if (!key) { $('#keyBox').open = true; $('#aiSt').textContent = 'Primero activa la redacción automática (abajo). Es una sola vez.'; return; }
   if (raw.length < 25) { $('#aiSt').textContent = 'Pega un poco más de información para armar la noticia.'; return; }
   aiCtl?.abort(); aiCtl = new AbortController();
   $('#aiGo').disabled = true; $('#aiAgain').disabled = true; $('#aiSt').textContent = 'Redactando la noticia…';
@@ -1336,7 +1761,7 @@ async function runAI(again) {
     const c = (e && e.code) || (e && e.name === 'AbortError' ? 'cancel' : 'net');
     $('#aiSt').textContent = c === 'cancel' ? '' : c === 'badkey' ? 'La clave de Google no funciona. Bórrala y pega una nueva.' :
       c === 'quota' ? 'Se usó el límite gratis de hoy. Se renueva mañana; mientras tanto escribe el titular a mano.' :
-      c === 'json' ? 'La IA respondió algo incompleto. Toca de nuevo.' : 'No hay conexión con la IA. Revisa tu internet y toca de nuevo.';
+      c === 'json' ? 'La respuesta llegó incompleta. Toca de nuevo.' : 'No hay conexión. Revisa tu internet y toca de nuevo.';
   }
   $('#aiGo').disabled = false;
 }
@@ -1355,6 +1780,8 @@ $('#copy').onclick = async () => {
   document.querySelectorAll('#sty button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === style));
   const d = new Date(), dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'], meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   $('#date').value = dias[d.getDay()] + ' ' + d.getDate() + ' de ' + meses[d.getMonth()];
+  try { const n = JSON.parse(ls.get('une_news') || 'null'); if (n) { if (['seccion', 'noticiero', 'ultima', 'none'].includes(n.cortina)) cortina = n.cortina; if (['noticiero', 'impacto', 'suave', 'none'].includes(n.sound)) sound = n.sound; if ([4, 6, 8].includes(+n.secs)) secs = +n.secs; } } catch (_) {}
+  setChip('#cort', cortina); setChip('#snd', sound); setChip('#secs', secs);
   loadBrand(); loadAds(); applyTier(); keyUI();
 })();
 document.fonts.ready.then(async () => {
