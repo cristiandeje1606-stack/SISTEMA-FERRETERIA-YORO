@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Archivo;src:url(fonts/archivo.woff2) format('woff2');font-weight:100 900;font-stretch:62% 125%}
+@font-face{font-family:Mont;src:url(fonts/montserrat-latin-600-normal.woff2);font-weight:600}
+@font-face{font-family:Mont;src:url(fonts/montserrat-latin-700-normal.woff2);font-weight:700}
+@font-face{font-family:Mont;src:url(fonts/montserrat-latin-800-normal.woff2);font-weight:800}
+@font-face{font-family:Mont;src:url(fonts/montserrat-latin-900-normal.woff2);font-weight:900}
+html,body{margin:0;background:#000;overflow:hidden}canvas{display:block}
+</style>
+<script src="lib/d3.min.js"></script><script src="lib/topojson.min.js"></script><script src="lib/mundo.js"></script><script src="palabras.js"></script>
+</head><body><canvas id="c"></canvas>
+<script>
+const W=1080,H=1920,FPS=30,O=3.2,END=44.35,DUR=49.5;
+const cv=document.getElementById('c');cv.width=W;cv.height=H;const X=cv.getContext('2d');
+const R='#D7141A',RD='#7A0A0E',GOLD='#FFD27A';
+const cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),P=(t,a,d)=>cl((t-a)/d);
+const ex=x=>{x=cl(x);return x>=1?1:1-Math.pow(2,-10*x)},ss=x=>{x=cl(x);return x*x*(3-2*x)};
+const bk=(x,s=1.8)=>{x=cl(x);const c3=s+1;return 1+c3*Math.pow(x-1,3)+s*Math.pow(x-1,2)};
+const el=x=>{x=cl(x);if(x===0||x===1)return x;return Math.pow(2,-10*x)*Math.sin((x*10-.75)*(2*Math.PI)/3)+1};
+const hs=i=>{const s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)};
+const S=s=>s+O;
+// ---------- datos ----------
+const PAL=window.PALABRAS||[];
+const NF=window.NFRAMES||1240;
+const IMG={};['capitolio','cupula','trump','casablanca','caravana2','caravana3','dolares','muro','bandera1','congresohn','tegus'].forEach(k=>{const i=new Image();i.src='img/'+k+'.jpg';IMG[k]=i});
+const CRED={capitolio:'Foto: Martin Falbisoner · CC BY-SA 3.0',cupula:'Foto: Diliff · CC BY 2.5',trump:'Foto: Daniel Torok / Casa Blanca · Dominio público',casablanca:'Foto: Nishkid64 · Dominio público',
+ caravana2:'Foto: Wotancito · CC BY-SA 4.0',caravana3:'Foto: Wotancito · CC BY-SA 4.0',dolares:'Imagen: Tesoro de EE. UU. · Dominio público',muro:'Foto: Tomascastelazo · CC BY-SA 4.0',
+ bandera1:'Foto: Camfer03 · CC0',congresohn:'Foto: Luis Alfredo Romero · CC BY-SA 4.0',tegus:'Foto: Straggles · CC0'};
+// ---------- guion de edición (tiempos de salida) ----------
+// V: ella en cámara (z zoom, fy foco vertical, sh sacudida); B: foto; M: mapa
+const SH=[
+ {t0:0,t1:3.2,k:'V',src:21.12,z:1.62,fy:.33,tr:'zoom'},
+ {t0:3.2,t1:S(2.8),k:'V',src:-O,z:1.22,fy:.38,tr:'flash'},
+ {t0:S(2.8),t1:S(5.3),k:'B',im:'cupula',lab:'CONGRESO DE LOS ESTADOS UNIDOS',kb:[1.04,1.16,0,-.06],tr:'whipL'},
+ {t0:S(5.3),t1:S(7.9),k:'V',src:-O,z:1.58,fy:.33,tr:'whipR'},
+ {t0:S(7.9),t1:S(10.1),k:'B',im:'casablanca',lab:'CASA BLANCA · WASHINGTON',kb:[1.1,1.22,.05,-.05],tr:'whipL'},
+ {t0:S(10.1),t1:S(11.4),k:'B',im:'trump',lab:'DONALD TRUMP',kb:[1.0,1.08,0,.02],tr:'zoom',tint:1},
+ {t0:S(11.4),t1:S(12.4),k:'B',im:'caravana2',lab:'MIGRACIÓN',kb:[1.12,1.2,-.05,.05],tr:'whipR'},
+ {t0:S(12.4),t1:S(13.5),k:'B',im:'caravana3',lab:'MIGRACIÓN',kb:[1.05,1.14,.04,0],tr:'flash'},
+ {t0:S(13.5),t1:S(14.4),k:'B',im:'dolares',lab:'REMESAS',kb:[1.0,1.18,0,0],tr:'zoom',rot:1},
+ {t0:S(14.4),t1:S(15.8),k:'B',im:'muro',lab:'FRONTERA EE. UU. – MÉXICO',kb:[1.08,1.18,.06,-.04],tr:'whipL'},
+ {t0:S(15.8),t1:S(17.4),k:'V',src:-O,z:1.25,fy:.38,tr:'whipR'},
+ {t0:S(17.4),t1:S(19.5),k:'V',src:-O,z:1.6,fy:.33,tr:'zoom',hit:S(18.46)},
+ {t0:S(19.5),t1:S(21.1),k:'B',im:'capitolio',lab:'WASHINGTON D. C.',kb:[1.06,1.2,-.08,.04],tr:'whipL'},
+ {t0:S(21.1),t1:S(24.6),k:'V',src:-O,z:1.72,fy:.32,tr:'flash',hit:S(22.26)},
+ {t0:S(24.6),t1:S(27.2),k:'B',im:'bandera1',lab:'HONDURAS',kb:[1.05,1.16,.05,0],tr:'whipR'},
+ {t0:S(27.2),t1:S(29.5),k:'B',im:'congresohn',lab:'CONGRESO NACIONAL DE HONDURAS',kb:[1.04,1.14,-.05,0],tr:'whipL'},
+ {t0:S(29.5),t1:S(31.7),k:'V',src:-O,z:1.68,fy:.32,tr:'zoom',hit:S(29.92)},
+ {t0:S(31.7),t1:S(35.0),k:'M',tr:'flash'},
+ {t0:S(35.0),t1:S(38.0),k:'V',src:-O,z:1.2,fy:.38,tr:'whipR',push:1},
+ {t0:S(38.0),t1:END,k:'B',im:'tegus',lab:'TEGUCIGALPA, HONDURAS',kb:[1.02,1.16,0,.04],tr:'flash'},
+];
+// títulos de golpe
+const SLAM=[
+ {t0:.25,t1:3.1,l:['NO SOMOS EL','PATIO TRASERO'],red:1,y:1180},
+ {t0:S(5.9),t1:S(7.9),l:['CONTRAPESOS'],y:1170,icon:'balanza'},
+ {t0:S(18.4),t1:S(19.5),l:['SOBERANÍA'],y:1180,red:0},
+ {t0:S(19.75),t1:S(21.1),l:['NO DEPENDE','DE WASHINGTON'],y:1120,red:1},
+ {t0:S(25.6),t1:S(27.2),l:['UN PAÍS','SOBERANO'],y:1120,red:1},
+ {t0:S(27.9),t1:S(29.5),l:['INDEPENDIENTE'],y:1150},
+ {t0:S(29.85),t1:S(31.7),l:['LA DIGNIDAD','NO SE NEGOCIA'],y:1150,red:1},
+];
+const NOCAP=[[0,3.2],[S(31.7),S(35.0)],[S(38.0),99]];
+// ---------- utilidades de dibujo ----------
+function cover(img,sc,dx,dy){const r=Math.max(W/img.width,H/img.height)*sc;const w=img.width*r,h=img.height*r;X.drawImage(img,(W-w)/2+dx*W,(H-h)/2+dy*H,w,h)}
+function txt(s,x,y,size,o={}){X.save();X.font=`${o.w||900} ${size}px ${o.f||'Mont'}`;if(o.st)X.fontStretch=o.st;X.textAlign=o.al||'center';X.textBaseline='middle';if(o.ls)X.letterSpacing=o.ls+'px';
+  const m=X.measureText(s).width;if(o.sh!==0){X.shadowColor='rgba(0,0,0,.65)';X.shadowBlur=o.blur||20;X.shadowOffsetY=6}
+  if(o.stroke){X.lineJoin='round';X.lineWidth=o.stroke;X.strokeStyle=o.sc||'#000';X.strokeText(s,x,y);X.shadowColor='transparent'}
+  X.fillStyle=o.c||'#fff';X.fillText(s,x,y);X.restore();return m}
+function mw(s,size,o={}){X.save();X.font=`${o.w||900} ${size}px ${o.f||'Mont'}`;if(o.st)X.fontStretch=o.st;if(o.ls)X.letterSpacing=o.ls+'px';const m=X.measureText(s).width;X.restore();return m}
+// grano de película
+const GR=[];for(let g=0;g<4;g++){const c=document.createElement('canvas');c.width=270;c.height=480;const x=c.getContext('2d');const d=x.createImageData(270,480);
+  for(let i=0;i<d.data.length;i+=4){const v=hs(i*.37+g*1000)*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=22}x.putImageData(d,0,0);GR.push(c)}
+// ---------- cuadro de video ----------
+let FR=null,FRi=-1;
+async function frameAt(s){const i=Math.max(1,Math.min(NF,Math.round(s*FPS)+1));if(i===FRi)return FR;const im=new Image();im.src='frames/f_'+String(i).padStart(5,'0')+'.jpg';await im.decode();FR=im;FRi=i;return im}
+function drawV(img,sh,t){
+  const lt=t-sh.t0;let z=sh.z;
+  z*= 1+.07*(1-bk(cl(lt/.45),2.2));              // rebote de entrada
+  if(sh.push)z*=1+.06*P(t,sh.t0,sh.t1-sh.t0);
+  z*=1+.004*Math.sin(t*1.3);                      // respiración
+  let sx=0,sy=0;
+  if(sh.hit&&t>=sh.hit){const d=t-sh.hit;const a=Math.exp(-d*7)*18;sx=Math.sin(d*70)*a;sy=Math.cos(d*55)*a;z*=1+.05*Math.exp(-d*6)}
+  const w=W*z,h=H*z;let x=W/2-w/2,y=H*.5-h*sh.fy- (h*(.5-sh.fy))*0; y=H*.5-h*sh.fy; y=Math.min(0,Math.max(H-h,y));x=Math.min(0,Math.max(W-w,x));
+  X.drawImage(img,x+sx,y+sy,w,h);
+}
+function drawB(sh,t){
+  const im=IMG[sh.im];const p=P(t,sh.t0,sh.t1-sh.t0);const e=ss(p);const sc=sh.kb[0]+(sh.kb[1]-sh.kb[0])*e;const dx=sh.kb[2]*(e-.5),dy=sh.kb[3]*(e-.5);
+  X.save();if(sh.rot){X.translate(W/2,H/2);X.rotate(.08-p*.08);X.translate(-W/2,-H/2)}
+  if(sh.im==='dolares'){X.fillStyle='#0d1a12';X.fillRect(0,0,W,H);X.save();X.translate(W/2,H/2);X.rotate(-Math.PI/2+.05);const r=H*1.05/im.width*sc;X.drawImage(im,-im.width*r/2,-im.height*r/2,im.width*r,im.height*r);X.restore()}
+  else cover(im,sc,dx,dy);X.restore();
+  if(sh.tint){X.save();X.globalCompositeOperation='color';X.fillStyle='rgba(60,60,60,.55)';X.fillRect(0,0,W,H);X.restore();X.fillStyle='rgba(120,0,10,.18)';X.fillRect(0,0,W,H)}
+  // degradados de marca
+  let g=X.createLinearGradient(0,H*.45,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.6,'rgba(10,0,0,.55)');g.addColorStop(1,'rgba(0,0,0,.85)');X.fillStyle=g;X.fillRect(0,0,W,H);
+  g=X.createLinearGradient(0,0,0,H*.25);g.addColorStop(0,'rgba(0,0,0,.55)');g.addColorStop(1,'rgba(0,0,0,0)');X.fillStyle=g;X.fillRect(0,0,W,H*.25);
+  // etiqueta
+  const lp=ex(P(t,sh.t0+.12,.45)),lo=ss(P(t,sh.t1-.2,.2));if(sh.lab){X.save();X.globalAlpha=1-lo;const s=34,m=mw(sh.lab,s,{w:800,ls:3});const x=70,y=330;
+    X.fillStyle=R;X.beginPath();X.rect(x-20,y-34,(m+60)*lp,68);X.fill();X.save();X.beginPath();X.rect(x-20,y-34,(m+60)*lp,68);X.clip();txt(sh.lab,x+10,y+2,s,{w:800,al:'left',ls:3,sh:0});X.restore();
+    X.fillStyle='#fff';X.fillRect(x-20,y-34,8,68*lp);X.restore()}
+  // crédito
+  txt(CRED[sh.im],W-40,H-60,19,{w:600,al:'right',c:'rgba(255,255,255,.7)',sh:0});
+}
+// ---------- mapa de América Latina ----------
+const LATAM=[484,320,340,222,558,188,591,170,862,218,604,68,152,32,858,600,76,328,740,192,214,332,630,84];
+let GEO=null,PATHS=null;
+function prepMapa(){const feats=topojson.feature(MUNDO,MUNDO.objects.countries).features;const proj=d3.geoMercator().center([-75,-5]).scale(780).translate([W/2,H*.52]);
+  const path=d3.geoPath(proj);PATHS=feats.map(f=>({id:+f.id,p:new Path2D(path(f)||''),c:path.centroid(f)}));}
+function drawMapa(t,sh){
+  const p=t-sh.t0;X.fillStyle='#0a0607';X.fillRect(0,0,W,H);
+  const rg=X.createRadialGradient(W/2,H*.5,0,W/2,H*.5,H*.7);rg.addColorStop(0,'rgba(120,10,16,.45)');rg.addColorStop(1,'rgba(0,0,0,0)');X.fillStyle=rg;X.fillRect(0,0,W,H);
+  // rejilla
+  X.strokeStyle='rgba(255,255,255,.05)';X.lineWidth=1;for(let i=0;i<W;i+=60){X.beginPath();X.moveTo(i,0);X.lineTo(i,H);X.stroke()}for(let i=0;i<H;i+=60){X.beginPath();X.moveTo(0,i);X.lineTo(W,i);X.stroke()}
+  const sc=1.0+.06*ss(P(t,sh.t0,sh.t1-sh.t0));X.save();X.translate(W/2,H*.52);X.scale(sc,sc);X.translate(-W/2,-H*.52);
+  for(const c of PATHS){const li=LATAM.indexOf(c.id);
+    if(li<0){X.fillStyle=c.id===840?'rgba(255,255,255,.10)':'rgba(255,255,255,.05)';X.fill(c.p);X.strokeStyle='rgba(255,255,255,.12)';X.lineWidth=1;X.stroke(c.p);continue}
+    const d=cl((p-.15-(c.c[1]-500)/1400*1.2)/.35);const col=c.id===340?'#FFFFFF':R;
+    X.fillStyle=`rgba(${c.id===340?'255,255,255':'215,20,26'},${.25+.75*d})`;X.fill(c.p);X.strokeStyle=`rgba(255,200,200,${.3+.5*d})`;X.lineWidth=1.5;X.stroke(c.p)}
+  // Honduras: pulso
+  const hn=PATHS.find(c=>c.id===340);if(hn){const q=(p*1.4)%1;X.strokeStyle=`rgba(255,255,255,${1-q})`;X.lineWidth=4;X.beginPath();X.arc(hn.c[0],hn.c[1],10+q*70,0,7);X.stroke();
+    X.fillStyle='#fff';X.beginPath();X.arc(hn.c[0],hn.c[1],8,0,7);X.fill();
+    const lp=ex(P(t,sh.t0+.8,.5));X.globalAlpha=lp;X.strokeStyle='#fff';X.lineWidth=3;X.beginPath();X.moveTo(hn.c[0],hn.c[1]);X.lineTo(hn.c[0]+120,hn.c[1]-80);X.lineTo(hn.c[0]+300,hn.c[1]-80);X.stroke();
+    txt('HONDURAS',hn.c[0]+130,hn.c[1]-110,34,{w:900,al:'left',ls:3});X.globalAlpha=1}
+  X.restore();
+  // textos
+  const a=ex(P(t,sh.t0+.1,.5));X.save();X.globalAlpha=a;txt('AMÉRICA LATINA',W/2,360+(1-a)*40,92,{w:900,st:'expanded',f:'Archivo'});X.restore();
+  const rp=S(33.58);if(t>=rp){const b=bk(P(t,rp,.4),2.5);X.save();X.translate(W/2,1540);X.scale(.6+.4*b,.6+.4*b);
+    const m=mw('EXIGE RESPETO',96,{f:'Archivo',st:'expanded'});X.fillStyle=R;X.fillRect(-m/2-34,-70,m+68,140);txt('EXIGE RESPETO',0,4,96,{f:'Archivo',st:'expanded',sh:0});X.restore()}
+  else{const a2=ex(P(t,S(32.9),.3));X.globalAlpha=a2;txt('EXIGE…',W/2,1540,80,{f:'Archivo',st:'expanded',w:900});X.globalAlpha=1}
+}
+// ---------- pluma ----------
+function pluma(x,y,s,rot,a){X.save();X.translate(x,y);X.rotate(rot);X.scale(s,s);X.globalAlpha=a;
+  const g=X.createLinearGradient(-30,0,30,0);g.addColorStop(0,'#8E0A10');g.addColorStop(.5,R);g.addColorStop(1,'#B50F16');X.fillStyle=g;
+  X.beginPath();X.moveTo(0,-110);X.bezierCurveTo(40,-80,44,10,8,95);X.lineTo(0,90);X.lineTo(-6,95);X.bezierCurveTo(-42,20,-38,-70,0,-110);X.fill();
+  X.strokeStyle='rgba(0,0,0,.35)';X.lineWidth=3;X.beginPath();X.moveTo(0,-104);X.quadraticCurveTo(4,0,0,120);X.stroke();
+  X.strokeStyle='rgba(255,255,255,.18)';X.lineWidth=1.5;for(let i=-80;i<80;i+=14){X.beginPath();X.moveTo(1,i);X.lineTo(30*Math.cos(i/120),i-18);X.moveTo(-1,i);X.lineTo(-28*Math.cos(i/120),i-18);X.stroke()}
+  // muescas
+  X.globalCompositeOperation='destination-out';X.beginPath();X.moveTo(36,-30);X.lineTo(14,-22);X.lineTo(36,-20);X.fill();X.beginPath();X.moveTo(-34,10);X.lineTo(-12,18);X.lineTo(-34,22);X.fill();
+  X.restore()}
+// ---------- subtítulos palabra por palabra ----------
+const GRUPOS=[];(function(){let g=[];PAL.forEach((w,i)=>{g.push(w);const end=/[.,]$/.test(w.w)||g.length>=3||(PAL[i+1]&&PAL[i+1].s-w.e>.35);if(end){GRUPOS.push(g);g=[]}});if(g.length)GRUPOS.push(g)})();
+const CLAVE=/^(DEMÓCRATAS|CONGRESO|TRUMP|MIGRACIÓN|REMESAS|INJERENCIA|AUTODETERMINACIÓN|SOBERANÍA|WASHINGTON|PATIO|TRASERO|SOBERANO|INDEPENDIENTE|DIGNIDAD|RESPETO|LIBRE|SOBERANA|DIGNA|EXTREMAS|CONTRAPESOS)$/;
+function subtitulos(t){
+  for(const [a,b] of NOCAP)if(t>=a&&t<b)return;
+  const s=t-O;if(s<0)return;const g=GRUPOS.find(g=>s>=g[0].s-.05&&s<(g[g.length-1].e+.25));if(!g)return;
+  const ws=g.map(w=>w.w.replace(/[.,]/g,'').toUpperCase());const size=78;const gap=22;const widths=ws.map(w=>mw(w,size,{w:900}));
+  let tot=widths.reduce((a,b)=>a+b,0)+gap*(ws.length-1);let sz=size;if(tot>W-120){sz=size*(W-120)/tot;tot=W-120}
+  let x=W/2-tot/2;const y=1430;const gin=ex(P(s,g[0].s-.05,.18));
+  ws.forEach((w,i)=>{const wd=widths[i]*sz/size;const on=s>=g[i].s-.03;const act=on&&(i===ws.length-1||s<g[i+1].s-.03);
+    const pop=on?1+.22*(1-bk(cl((s-g[i].s+.03)/.22),3)):.92;const key=CLAVE.test(w);
+    X.save();X.translate(x+wd/2,y+(1-gin)*30);X.scale(pop,pop);X.globalAlpha=on?1:.45;
+    if(act&&key){X.fillStyle=R;X.beginPath();X.roundRect(-wd/2-14,-sz*.62,wd+28,sz*1.18,12);X.fill()}
+    txt(w,0,4,sz,{w:900,c:act?(key?'#fff':'#FFD9D9'):(key&&on?'#FF5A5F':'#fff'),stroke:9,sc:'rgba(0,0,0,.85)',sh:0});X.restore();x+=wd+gap})
+}
+// ---------- títulos de golpe ----------
+function slam(t){for(const s of SLAM){if(t<s.t0||t>s.t1)continue;const p=t-s.t0,o=ss(P(t,s.t1-.2,.2));
+  s.l.forEach((ln,i)=>{const d=p-i*.12;if(d<0)return;const b=bk(cl(d/.35),2.6);const size=Math.min(150,(W-110)/mw(ln,100,{f:'Archivo',st:'expanded'})*100);
+    const y=s.y+i*size*1.02;X.save();X.translate(W/2,y);X.scale(1.6-.6*b,1.6-.6*b);X.globalAlpha=cl(d/.12)*(1-o);
+    const red=s.red&&i===s.l.length-1;const m=mw(ln,size,{f:'Archivo',st:'expanded'});
+    if(red){X.fillStyle=R;X.save();X.transform(1,0,-.12,1,0,0);X.fillRect(-m/2-28,-size*.58,m+56,size*1.1);X.restore()}
+    // eco
+    X.globalAlpha*=.35;txt(ln,0,(1-b)*40+8,size,{f:'Archivo',st:'expanded',c:red?'#fff':R,sh:0});X.globalAlpha=cl(d/.12)*(1-o);
+    txt(ln,0,4,size,{f:'Archivo',st:'expanded',stroke:red?0:10,sc:'rgba(0,0,0,.8)'});X.restore()});
+  if(s.icon==='balanza'){const a=ex(P(t,s.t0+.2,.4))*(1-o);const r=Math.sin((t-s.t0)*3)*.15;X.save();X.globalAlpha=a;X.translate(W/2,s.y-190);X.strokeStyle='#fff';X.lineWidth=8;X.lineCap='round';
+    X.beginPath();X.moveTo(0,-70);X.lineTo(0,60);X.moveTo(-50,60);X.lineTo(50,60);X.stroke();X.rotate(r);X.beginPath();X.moveTo(-110,-60);X.lineTo(110,-60);X.stroke();
+    [-110,110].forEach(px=>{X.save();X.translate(px,-60);X.rotate(-r);X.beginPath();X.moveTo(0,0);X.lineTo(-34,60);X.moveTo(0,0);X.lineTo(34,60);X.stroke();X.fillStyle=R;X.beginPath();X.arc(0,60,38,0,Math.PI);X.fill();X.restore()});X.restore()}
+}}
+// ---------- tercio inferior y sello ----------
+function tercio(t){const a=3.6,b=S(2.75);if(t<a||t>b)return;const p=ex(P(t,a,.6)),o=ss(P(t,b-.3,.3));X.save();X.globalAlpha=1-o;const x=60,y=1160;
+  X.fillStyle=R;X.fillRect(x,y,14,150*p);X.save();X.beginPath();X.rect(x+14,y,900*p,160);X.clip();
+  txt('ANGÉLICA SMITH',x+44,y+52,68,{w:900,al:'left'});txt('DIPUTADA · SANTA BÁRBARA',x+46,y+118,32,{w:700,al:'left',ls:5,c:'#FFD3D3'});X.restore();X.restore()}
+function sello(t){if(t<3.3||t>END)return;const a=ss(P(t,3.3,.5))*(1-ss(P(t,END-.3,.3)));X.save();X.globalAlpha=a*.92;
+  const s1=mw('ANGÉLICA ',30,{w:800,ls:6}),s2=mw('SMITH',30,{w:800,ls:6});const x=W/2-(s1+s2)/2,y=262;
+  txt('ANGÉLICA ',x,y,30,{w:800,al:'left',ls:6});txt('SMITH',x+s1,y,30,{w:800,al:'left',ls:6,c:'#FF3B40'});X.fillStyle=R;X.fillRect(W/2-30,y+26,60,4);X.restore()}
+// ---------- transiciones ----------
+function entrada(sh,t,draw){const d=t-sh.t0,T=.22;if(d>=T||sh.t0===0){draw();return}
+  const e=ex(d/T);
+  if(sh.tr==='whipL'||sh.tr==='whipR'){const dir=sh.tr==='whipL'?1:-1;const off=(1-e)*W*.9*dir;
+    for(let k=3;k>=0;k--){X.save();X.globalAlpha=k?.22:1;X.translate(off+k*dir*70*(1-e),0);draw();X.restore()}}
+  else if(sh.tr==='zoom'){for(let k=3;k>=0;k--){X.save();X.globalAlpha=k?.25:1;const s=1+(1-e)*.25+k*.04*(1-e);X.translate(W/2,H/2);X.scale(s,s);X.translate(-W/2,-H/2);draw();X.restore()}}
+  else draw();
+  const f=1-d/T;X.fillStyle=`rgba(255,255,255,${(sh.tr==='flash'?.85:.35)*f})`;X.fillRect(0,0,W,H);
+  // fuga de luz roja
+  const lg=X.createRadialGradient(W*(sh.tr==='whipR'?0:1),H*.4,0,W*(sh.tr==='whipR'?0:1),H*.4,W*1.2);lg.addColorStop(0,`rgba(255,60,40,${.55*f})`);lg.addColorStop(1,'rgba(255,60,40,0)');
+  X.save();X.globalCompositeOperation='screen';X.fillStyle=lg;X.fillRect(0,0,W,H);X.restore()}
+// ---------- cierre con logo ----------
+function logo(t){const p=t-END;if(p<0)return;
+  X.fillStyle='#050101';X.fillRect(0,0,W,H);const rg=X.createRadialGradient(W/2,H*.42,0,W/2,H*.42,H*.62);rg.addColorStop(0,`rgba(140,12,18,${.55*ss(p/.8)})`);rg.addColorStop(1,'rgba(0,0,0,0)');X.fillStyle=rg;X.fillRect(0,0,W,H);
+  // cintas roja y blanca en diagonal que barren
+  const q=P(t,END,1.0);if(q<1){const e=ss(q);X.save();X.translate(W/2,H/2);X.rotate(-.42);[[R,0,150],['#fff',150,90],['#111',240,60]].forEach(([c,o,h],j)=>{X.fillStyle=c;const x=-W*1.6+e*W*3.4-j*90;X.fillRect(x,-260+o,W*1.4,h)});X.restore()}
+  // plumas
+  for(let i=0;i<9;i++){const t0=END+.25+i*.09;const d=t-t0;if(d<0)continue;const sx=W*(.1+.8*hs(i+3)),sy=-150+d*(160+hs(i)*90)+Math.sin(d*1.6+i)*20;const x=sx+Math.sin(d*1.3+i*2)*90;
+    pluma(x,sy+(i%3)*260,.55+hs(i+9)*.5,Math.sin(d*1.4+i)*.7+(i%2?2.6:-.4),cl(d/.3)*.95)}
+  const cy=780;
+  // ANGÉLICA letra por letra con rebote
+  const word='ANGÉLICA';const size=168;const tw=mw(word,size,{w:900});let x=W/2-tw/2;
+  for(let i=0;i<word.length;i++){const ch=word[i];const w=mw(ch,size,{w:900});const d=t-(END+.55+i*.05);if(d>0){const b=bk(cl(d/.45),2.4);
+    X.save();X.translate(x+w/2,cy+(1-b)*-140);X.globalAlpha=cl(d/.15);X.scale(1,1+(1-b)*.25);txt(ch,0,0,size,{w:900,blur:30});X.restore()}x+=w}
+  // brillo que cruza
+  const sp=P(t,END+1.9,.8);if(sp>0&&sp<1){X.save();X.globalCompositeOperation='source-atop';X.restore()}
+  // SMITH + DIPUTADA
+  const r2=ex(P(t,END+1.0,.6));const sm=mw('SMITH',92,{w:900}),dp=mw('DIPUTADA · SANTA BÁRBARA',30,{w:700,ls:2});const tot=sm+24+dp;const x0=W/2-tot/2;
+  X.save();X.beginPath();X.rect(x0-10,cy+70,(tot+20)*r2,110);X.clip();txt('SMITH',x0,cy+128,92,{w:900,al:'left',c:R});txt('DIPUTADA · SANTA BÁRBARA',x0+sm+24,cy+138,30,{w:700,al:'left',ls:2,c:'#eee'});X.restore();
+  // línea
+  const l=ex(P(t,END+1.3,.6));X.fillStyle=R;X.fillRect(W/2-150*l,cy+235,300*l,6);
+  // lema
+  const a3=ex(P(t,END+1.5,.6));X.save();X.globalAlpha=a3;const y3=cy+330+(1-a3)*30;txt('¡Siempre al servicio',W/2,y3,62,{w:800});
+  const s1=mw('de ',62,{w:800}),s2=mw('Santa Bárbara',62,{w:800}),s3=mw('!',62,{w:800});let xx=W/2-(s1+s2+s3)/2;
+  txt('de ',xx,y3+80,62,{w:800,al:'left'});txt('Santa Bárbara',xx+s1,y3+80,62,{w:800,al:'left',c:'#FF3B40'});txt('!',xx+s1+s2,y3+80,62,{w:800,al:'left'});X.restore();
+  // píldora
+  const pb=bk(P(t,END+1.85,.5),2.6);if(pb>0){const m=mw('CERCANA A SU PUEBLO',52,{w:900});X.save();X.translate(W/2,cy+560);X.scale(pb,pb);
+    X.shadowColor='rgba(215,20,26,.7)';X.shadowBlur=40;X.fillStyle=R;X.beginPath();X.roundRect(-m/2-46,-52,m+92,104,10);X.fill();X.shadowColor='transparent';
+    const sw=P(t,END+2.5,.7);if(sw>0&&sw<1){X.save();X.beginPath();X.roundRect(-m/2-46,-52,m+92,104,10);X.clip();const gx=-m+2*m*ss(sw);const g=X.createLinearGradient(gx-80,0,gx+80,0);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,0)');X.fillStyle=g;X.fillRect(-m,-60,m*2,120);X.restore()}
+    txt('CERCANA A SU PUEBLO',0,3,52,{w:900,sh:0});X.restore()}
+  const a4=ss(P(t,END+2.3,.6));X.globalAlpha=a4;txt('PRODUCCIÓN  ·  PROAUDIH',W/2,cy+780,26,{w:700,ls:7,c:'rgba(255,255,255,.65)'});X.globalAlpha=1;
+  // destello inicial
+  const f=1-P(t,END,.35);if(f>0){X.fillStyle=`rgba(255,255,255,${f*.9})`;X.fillRect(0,0,W,H)}
+}
+// ---------- render ----------
+window.render=async function(t){
+  X.setTransform(1,0,0,1,0,0);X.globalAlpha=1;X.globalCompositeOperation='source-over';X.fillStyle='#000';X.fillRect(0,0,W,H);
+  if(t<END){
+    const sh=SH.find(s=>t>=s.t0&&t<s.t1)||SH[SH.length-1];
+    let img=null;if(sh.k==='V'){const s=sh.src<0?t-O:sh.src+(t-sh.t0);img=await frameAt(s)}
+    entrada(sh,t,()=>{if(sh.k==='V')drawV(img,sh,t);else if(sh.k==='B')drawB(sh,t);else drawMapa(t,sh)});
+    if(sh.k==='V'){const g=X.createLinearGradient(0,H*.55,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.6)');X.fillStyle=g;X.fillRect(0,0,W,H)}
+    // palabras que se apilan al final
+    if(t>=S(38.0)){[['DIGNA',S(38.04)],['LIBRE',S(39.24)],['Y SOBERANA',S(40.34)]].forEach(([w,t0],i)=>{if(t<t0)return;const b=bk(P(t,t0,.4),2.6);X.save();X.translate(W/2,820+i*190);X.scale(1.5-.5*b,1.5-.5*b);X.globalAlpha=cl((t-t0)/.1);
+      const size=Math.min(170,(W-120)/mw(w,100,{f:'Archivo',st:'expanded'})*100);if(i===2){const m=mw(w,size,{f:'Archivo',st:'expanded'});X.fillStyle=R;X.fillRect(-m/2-30,-size*.6,m+60,size*1.15)}
+      txt(w,0,4,size,{f:'Archivo',st:'expanded',stroke:i===2?0:10,sc:'rgba(0,0,0,.8)'});X.restore()})}
+    slam(t);tercio(t);subtitulos(t);sello(t);
+  }
+  logo(t);
+  // grano y viñeta
+  X.drawImage(GR[Math.floor(t*FPS)%4],0,0,W,H);
+  const v=X.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.75);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.45)');X.fillStyle=v;X.fillRect(0,0,W,H);
+  return true;
+};
+Promise.all([document.fonts.load('900 100px Mont'),document.fonts.load('800 100px Mont'),document.fonts.load('700 100px Mont'),document.fonts.load('900 100px Archivo'),...Object.values(IMG).map(i=>i.decode())]).then(()=>{prepMapa();window.ready=true});
+</script></body></html>
