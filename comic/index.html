@@ -121,10 +121,10 @@ function p1(t){
       const tx=L(w*.4,w/2),ty=h*L(.3,.26);const s1=fit('VISIÓN',w*L(.42,.66),L(200,190)*U);
       caption(t,6.95,L(60,40)*U,L(70,90)*U,'LA PROGRAMACIÓN DE',L(46,42)*U,{al:'l',rot:-.02});
       blk('UNE',tx-L(60,40)*U,ty,s1,7.1,-.05,'#E3173E',C.bl);blk('VISIÓN',tx+L(40,30)*U,ty+s1*1.02,s1,7.4,.03,'#fff',C.marino);
-      const stY=h*L(.74,.6),stX=L(w*.36,w*.5);const ps=P(t,8.4,.3);if(ps>0){X.save();X.translate(stX,stY);X.rotate(-.08);const sc=2.2-1.2*ex(ps);X.scale(sc,sc);X.globalAlpha=cl(ps*3);
+      const stY=h*L(.74,.52),stX=L(w*.36,w*.5);const ps=P(t,8.4,.3);if(ps>0){X.save();X.translate(stX,stY);X.rotate(-.08);const sc=2.2-1.2*ex(ps);X.scale(sc,sc);X.globalAlpha=cl(ps*3);
         const sz=L(76,68)*U,s='TODOS LOS DÍAS',bw=mw(s,sz)+60*U;X.lineWidth=8*U;X.strokeStyle=C.am;X.strokeRect(-bw/2,-sz*.7,bw,sz*1.4);X.lineWidth=3*U;X.strokeRect(-bw/2+10*U,-sz*.7+10*U,bw-20*U,sz*1.4-20*U);X.restore();
         ink(s,stX,stY,sz,{rot:-.08,sc,c:C.am,d:6,lw:9})}
-      const bx=L(w*.78,w*.5),by=h*L(.5,.77),br=L(230,200)*U*el(P(t,9.2,.45));burst(bx,by,br,C.am,21,16,{in:'#FFF27A'});
+      const bx=L(w*.78,w*.5),by=h*L(.5,.72),br=L(230,200)*U*el(P(t,9.2,.45));burst(bx,by,br,C.am,21,16,{in:'#FFF27A'});
       if(br>5)logoSticker(bx,by,br*1.0,Math.sin((t-9.2)*2)*.06,1);
       const py=h*L(.92,.92);const pp=P(t,10.4,.4);if(pp>0){X.save();X.globalAlpha=ex(pp);const s='Santa Bárbara, este es tu canal';const sz=fit(s,w*.8,L(52,46)*U,'Neue');const bw=mw(s,sz,'Neue')+50*U;
         X.fillStyle='#fff';X.fillRect(w/2-bw/2,py-sz*.85,bw*ex(pp),sz*1.7);X.lineWidth=6*U;X.strokeStyle=C.ti;X.strokeRect(w/2-bw/2,py-sz*.85,bw*ex(pp),sz*1.7);
@@ -178,8 +178,8 @@ function p2(t){
       bubble(t,t0,x,y,bw,bh,x+[-1,1,-1][i]*bw*.35,y+bh*.75,[],10*U,{shout:i===2,bg:i===2?C.am:'#fff'});const pp=P(t,t0+.05,.3);if(pp>0)ink(s,x,y+sz*.05,sz,{rot:-.03,sc:bk(pp,2.2),c:[C.ro,C.az,C.ro][i],d:8,lw:9})});
   }else{// cierre
     X.fillStyle=C.marino;X.fillRect(0,0,W,H);rays(CX,L(CY-60*U,CY-300*U),24,C.marino,'#13335a',t*.15);dots(0,0,W,H,'rgba(8,225,255,.35)',26*U,10*U,4);
-    const ly=L(CY-200*U,CY-420*U);const br=L(250,300)*U*el(P(t,13.2,.5));burst(CX,ly,br,C.am,61,16,{in:'#FFF27A',lw:11});if(br>5)logoSticker(CX,ly,L(290,340)*U,Math.sin((t-13.2)*1.3)*.05,bk(P(t,13.3,.45),2));
-    const ws=['EL CANAL','QUE CRECE','CADA DÍA'];const base=L(CY+110*U,CY+80*U);const sz=fit('QUE CRECE',W*L(.6,.82),L(150,150)*U,'Luck');
+    const ly=L(CY-300*U,CY-430*U);const br=L(190,290)*U*el(P(t,13.2,.5));burst(CX,ly,br,C.am,61,16,{in:'#FFF27A',lw:11});if(br>5)logoSticker(CX,ly,L(220,330)*U,Math.sin((t-13.2)*1.3)*.05,bk(P(t,13.3,.45),2));
+    const ws=['EL CANAL','QUE CRECE','CADA DÍA'];const base=L(CY+150*U,CY+90*U);const sz=fit('QUE CRECE',W*L(.6,.82),L(150,150)*U,'Luck');
     ws.forEach((s,i)=>{const pp=P(t,13.8+i*.6,.35);if(pp<=0)return;const k=i===1?1.18:1;ink(s,CX,base+(i-1)*sz*L(.98,1.02)+(i===1?0:0),sz*(i===1?1:.82),{f:'Luck',rot:-.04,sc:bk(pp,2.4)*(i===1?1+.04*Math.sin((t-14.4)*5):1),c:i===1?C.am:C.bl,d:12,lw:12})});
     if(t>14.4)arrow(CX+mw('QUE CRECE',sz,'Luck')/2+L(90,40)*U,base-L(10,90)*U,L(.9,.7)*bk(P(t,14.5,.3),2),'#5BE37A');
     caption(t,15.6,CX,base+sz*L(1.75,1.9),'/UNEVISION',L(56,58)*U,{bg:C.ro,c:'#fff',rot:.02});
