@@ -19,7 +19,7 @@ const el=x=>{x=cl(x);if(x===0||x===1)return x;return Math.pow(2,-10*x)*Math.sin(
 const hs=i=>{const s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)};
 const L=(a,b)=>TV?a:b;
 const LOGO=new Image();LOGO.src='logo.png';const LG={};
-function prep(){const mk=f=>{const c=document.createElement('canvas');c.width=LOGO.width;c.height=LOGO.height;const x=c.getContext('2d');x.drawImage(LOGO,0,0);x.globalCompositeOperation='source-in';x.fillStyle=f;x.fillRect(0,0,c.width,c.height);return c};LG.w=mk('#fff');LG.k=mk('#111')}
+function prep(){const mk=f=>{const c=document.createElement('canvas');c.width=LOGO.width;c.height=LOGO.height;const x=c.getContext('2d');x.drawImage(LOGO,0,0);x.globalCompositeOperation='source-in';x.fillStyle=f;x.fillRect(0,0,c.width,c.height);return c};LG.w=mk('#fff');LG.k=mk('#111');LG.n=mk('#0B2238')}
 // ---------- piezas de cómic ----------
 function rays(cx,cy,n,c1,c2,rot){X.fillStyle=c1;X.fillRect(0,0,W,H);X.fillStyle=c2;X.beginPath();for(let i=0;i<n;i++){const a=rot+i*2*Math.PI/n;X.moveTo(cx,cy);X.arc(cx,cy,DG,a,a+Math.PI/n)}X.fill()}
 function dots(x,y,w,h,col,step,rmax,dir=0){X.save();X.beginPath();X.rect(x,y,w,h);X.clip();X.fillStyle=col;X.beginPath();
@@ -65,8 +65,7 @@ function caption(t,t0,x,y,s,sz,o={}){const p=P(t,t0,.3);if(p<=0)return;const e=b
 // logo como calcomanía con contorno blanco y tinta
 function logoSticker(cx,cy,w,rot=0,sc=1){const h=w*LOGO.height/LOGO.width;X.save();X.translate(cx,cy);X.rotate(rot);X.scale(sc,sc);
   for(let i=14;i>=1;i--)X.drawImage(LG.k,-w/2+i*.9*U,-h/2+i*U,w,h);
-  const o=14*U;for(let k=0;k<16;k++){const a=k/16*Math.PI*2;X.drawImage(LG.w,-w/2+Math.cos(a)*o,-h/2+Math.sin(a)*o,w,h)}
-  const o2=o+7*U;X.globalCompositeOperation='destination-over';for(let k=0;k<16;k++){const a=k/16*Math.PI*2;X.drawImage(LG.k,-w/2+Math.cos(a)*o2,-h/2+Math.sin(a)*o2,w,h)}
+  const o2=22*U,o=13*U;for(let k=0;k<20;k++){const a=k/20*Math.PI*2;X.drawImage(LG.w,-w/2+Math.cos(a)*o2,-h/2+Math.sin(a)*o2,w,h)}for(let k=0;k<20;k++){const a=k/20*Math.PI*2;X.drawImage(LG.n,-w/2+Math.cos(a)*o,-h/2+Math.sin(a)*o,w,h)}
   X.globalCompositeOperation='source-over';X.drawImage(LOGO,-w/2,-h/2,w,h);X.restore()}
 // mascota: televisor de caricatura
 function tele(cx,cy,s,t,o={}){X.save();X.translate(cx,cy);X.scale(s,s);X.lineJoin='round';X.lineCap='round';const k=U;
@@ -108,8 +107,8 @@ function p1(t){
     const m=40*U;const A=TV?[m,m,W*.5-m*1.5,H-2*m]:[m,260*U,W-2*m,660*U],B=TV?[W*.5+m*.5,m,W*.5-m*1.5,H-2*m]:[m,960*U,W-2*m,580*U];
     panel(t,2.4,...A,'l',(w,h)=>{rays(w/2,h*.62,16,'#CFF3FF','#a5e6ff',t*.3);dots(0,0,w,h,'rgba(0,168,232,.5)',20*U,8*U,3);
       const on=t>=5.6;const jump=on?Math.abs(Math.sin((t-5.6)*8))*30*U*Math.exp(-(t-5.6)*2):0;
-      tele(w/2,h*.64-jump,L(.95,1.05)*bk(P(t,2.5,.45),2),t,{on,talk:t>2.8&&t<4.4});
-      bubble(t,2.8,w/2,h*.17,w*.84,h*.22,w*.5,h*.33,['¿YA SABÉS','QUÉ VER HOY?'],L(46,50)*U);
+      tele(w/2,h*.66-jump,L(1.25,1.2)*bk(P(t,2.5,.45),2),t,{on,talk:t>2.8&&t<4.4});
+      bubble(t,2.8,w/2,h*.17,w*.84,h*.22,w*.5,h*.33,['¿YA SABÉS','QUÉ VER HOY?'],L(62,62)*U);
       const cr=L(120,115)*U*el(P(t,5.6,.35));if(cr>2&&t<6.6){burst(w*.8,h*.5,cr,C.ro,11,12);ink('¡CLIC!',w*.8,h*.5,cr*.5,{rot:-.12,c:C.am,d:6,lw:8})}},{rot:-.01});
     panel(t,3.4,...B,'r',(w,h)=>{rays(w/2,h/2,20,C.ro,'#ff5a7a',-t*.3);dots(0,0,w,h,'rgba(17,17,17,.25)',18*U,6*U,4);focus(w/2,h/2,Math.min(w,h)*.42,.85,'#fff',60,4);
       const ws=['¡MIRÁ','NUESTRA','PROGRAMACIÓN!'];const sz=fit('PROGRAMACIÓN!',w*.86,L(150,170)*U);const gap=sz*1.02;
@@ -126,7 +125,7 @@ function p1(t){
         const sz=L(70,64)*U,s='LUNES A VIERNES',bw=mw(s,sz)+60*U;X.lineWidth=8*U;X.strokeStyle=C.am;X.strokeRect(-bw/2,-sz*.7,bw,sz*1.4);X.lineWidth=3*U;X.strokeRect(-bw/2+10*U,-sz*.7+10*U,bw-20*U,sz*1.4-20*U);X.restore();
         ink(s,stX,stY,sz,{rot:-.08,sc,c:C.am,d:6,lw:9})}
       const bx=L(w*.76,w*.5),by=h*L(.62,.74),br=L(200,190)*U*el(P(t,9.2,.45));burst(bx,by,br,C.am,21,16,{in:'#FFF27A'});
-      if(br>2){ink('11:00',bx,by-br*.12,br*.5,{rot:-.06,c:C.ro,d:8,lw:10});ink('A. M.',bx,by+br*.33,br*.24,{rot:-.06,c:C.ti,d:0,lw:0})}
+      if(br>2){ink('11:00',bx,by-br*.12,br*.5,{rot:-.06,c:C.ro,d:8,lw:10});ink('A. M.',bx,by+br*.36,br*.3,{rot:-.06,c:C.ti,d:0,lw:0})}
       const py=h*L(.9,.9);const pp=P(t,10.4,.4);if(pp>0){X.save();X.globalAlpha=ex(pp);const s='La noticia, por el revés y por el derecho';const sz=fit(s,w*.86,L(48,40)*U,'Neue');
         X.fillStyle='#fff';X.fillRect(w/2-(mw(s,sz,'Neue')+50*U)/2,py-sz*.85,(mw(s,sz,'Neue')+50*U)*ex(pp),sz*1.7);X.lineWidth=6*U;X.strokeStyle=C.ti;X.strokeRect(w/2-(mw(s,sz,'Neue')+50*U)/2,py-sz*.85,(mw(s,sz,'Neue')+50*U)*ex(pp),sz*1.7);
         X.font=`700 ${sz}px Neue`;X.fillStyle=C.ti;X.textAlign='center';X.textBaseline='middle';X.fillText(s,w/2,py+2*U);X.restore()}});
@@ -153,7 +152,7 @@ function p2(t){
     X.fillStyle=C.marino;X.fillRect(0,0,W,H);dots(0,0,W,H,'rgba(0,168,232,.4)',24*U,10*U,4);
     caption(t,.2,L(80,60)*U,L(90,300)*U,'CADA DÍA...',L(60,58)*U,{al:'l'});
     const pw=L(420,520)*U,ph=L(330,420)*U;panel(t,.5,CX-pw/2,CY-ph/2+L(30,0)*U,pw,ph,'z',(w,h)=>{X.fillStyle='#fff';X.fillRect(0,0,w,h);dots(0,0,w,h,'rgba(0,168,232,.35)',18*U,7*U,2);
-      X.drawImage(LOGO,w/2-60*U,h/2-53*U,120*U,105*U)},{rot:.02});
+      X.drawImage(LOGO,w/2-95*U,h/2-83*U,190*U,167*U)},{rot:.02});
     const pp=P(t,1.4,.35);if(pp>0)ink('¡PSST!',CX+pw*.42,CY-ph*.55,L(80,84)*U,{rot:.18,sc:el(pp),c:C.am,d:8,lw:9});
   }else if(t<6.0){// crece, crece, ¡crece!
     X.fillStyle=C.am;X.fillRect(0,0,W,H);dots(0,0,W,H,'rgba(255,45,85,.45)',24*U,10*U,0);
@@ -164,7 +163,7 @@ function p2(t){
         const lw=Math.min(w,h)*scl*(i==2?1:1)*(1+.08*Math.sin((t-t0)*6)*Math.exp(-(t-t0)*2));if(i<2)logoSticker(w/2,h*.5,lw*bk(P(t,t0+.1,.4),2),0,1);
         const word=['crece','¡crece!','¡¡CRECE!!'][i].toUpperCase();const sz=fit(word,w*.8,[60,90,120][i]*U*L(1,1.1));ink(word,w/2,h*(TV?.86:.86),sz,{rot:-.05,sc:bk(P(t,t0+.25,.3),2),c:C.am,d:8,lw:9});
         if(i>0)arrow(w*(TV?.82:.88),h*.32,[.0,.55,.8][i]*L(1,.9)*bk(P(t,t0+.4,.3),2),i==1?C.am:'#5BE37A')},{rot:[-.015,.01,-.008][i]});
-      if(i===2&&t>=t0){const p=P(t,t0+.1,.5);const lw=L(380,360)*U*(1+.25*ss(P(t,t0+.6,.6)));logoSticker(R[0]+R[2]/2,R[1]+R[3]*(TV?.46:.45),lw*bk(p,2),Math.sin((t-t0)*3)*.05,1)}}
+      if(i===2&&t>=t0){const p=P(t,t0+.1,.5);const lw=L(330,290)*U*(1+.2*ss(P(t,t0+.6,.6)));logoSticker(R[0]+R[2]/2,R[1]+R[3]*(TV?.4:.36),lw*bk(p,2),Math.sin((t-t0)*3)*.05,1);const sz=fit('¡¡CRECE!!',R[2]*.8,120*U*L(1,1.1));ink('¡¡CRECE!!',R[0]+R[2]/2,R[1]+R[3]*.86,sz,{rot:-.05,sc:bk(P(t,t0+.25,.3),2),c:C.am,d:8,lw:9})}}
   }else if(t<9.6){// página doble: el logo rompe la viñeta
     rays(CX,CY,24,C.ro,C.naranja,t*.35);dots(0,0,W,H,'rgba(255,230,0,.45)',26*U,11*U,4);focus(CX,CY,L(420,460)*U,.9,'#fff',100,17);
     const d=t-6.0;for(let i=0;i<26;i++){const a=hs(i+50)*Math.PI*2,sp=(500+hs(i+51)*1100)*U;const r=sp*ex(d/1.2);const x=CX+Math.cos(a)*r,y=CY+Math.sin(a)*r;X.save();X.translate(x,y);X.rotate(a+d*(2+hs(i)*4));
@@ -175,7 +174,7 @@ function p2(t){
   }else if(t<13.2){// con usted, con nuestra gente, con Santa Bárbara
     rays(CX,CY,20,C.az,'#38c1f5',-t*.25);dots(0,0,W,H,'rgba(255,255,255,.35)',24*U,9*U,4);
     const L3=[['¡CON USTED!',9.6],['¡CON NUESTRA GENTE!',10.8],['¡CON SANTA BÁRBARA!',12.0]];
-    L3.forEach(([s,t0],i)=>{const y=TV?H*(.22+i*.28):H*(.27+i*.22);const x=TV?CX+[-1,1,-1][i]*W*.12:CX;const sz=fit(s,L(W*.56,W*.78),L(100,96)*U);const bw=mw(s,sz)+L(160,110)*U,bh=sz*1.9;
+    L3.forEach(([s,t0],i)=>{const y=TV?H*(.22+i*.28):H*(.27+i*.22);const x=TV?CX+[-1,1,-1][i]*W*.12:CX;const sz=fit(s,L(W*.5,W*.64),L(100,96)*U);const bw=mw(s,sz)*1.28+L(120,90)*U,bh=sz*2.1;
       bubble(t,t0,x,y,bw,bh,x+[-1,1,-1][i]*bw*.35,y+bh*.75,[],10*U,{shout:i===2,bg:i===2?C.am:'#fff'});const pp=P(t,t0+.05,.3);if(pp>0)ink(s,x,y+sz*.05,sz,{rot:-.03,sc:bk(pp,2.2),c:[C.ro,C.az,C.ro][i],d:8,lw:9})});
   }else{// cierre
     X.fillStyle=C.marino;X.fillRect(0,0,W,H);rays(CX,L(CY-60*U,CY-300*U),24,C.marino,'#13335a',t*.15);dots(0,0,W,H,'rgba(8,225,255,.35)',26*U,10*U,4);
