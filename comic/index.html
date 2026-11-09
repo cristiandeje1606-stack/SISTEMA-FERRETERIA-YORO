@@ -28,7 +28,7 @@ function dots(x,y,w,h,col,step,rmax,dir=0){X.save();X.beginPath();X.rect(x,y,w,h
     const r=rmax*cl(f);if(r>.6){X.moveTo(xx+r,yy);X.arc(xx,yy,r,0,7)}}X.fill();X.restore()}
 function focus(cx,cy,r0,k,col='#fff',n=70,seed=0){if(k<=0)return;X.save();X.fillStyle=col;X.globalAlpha=k;for(let i=0;i<n;i++){const a=hs(i+seed)*Math.PI*2,w=(.006+hs(i+seed+40)*.014);const r=r0*(.9+hs(i+seed+80)*.5);
   X.beginPath();X.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);X.lineTo(cx+Math.cos(a-w)*DG,cy+Math.sin(a-w)*DG);X.lineTo(cx+Math.cos(a+w)*DG,cy+Math.sin(a+w)*DG);X.fill()}X.restore()}
-function starPath(cx,cy,r,n,seed,inner=.68){X.beginPath();for(let i=0;i<n*2;i++){const a=i*Math.PI/n-Math.PI/2;const rr=i%2?r*(inner+hs(i+seed)*.08):r*(.92+hs(i+seed+9)*.16);const x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;i?X.lineTo(x,y):X.moveTo(x,y)}X.closePath()}
+function starPath(cx,cy,r,n,seed,inner=.68,nb=false){if(!nb)X.beginPath();for(let i=0;i<n*2;i++){const a=i*Math.PI/n-Math.PI/2;const rr=i%2?r*(inner+hs(i+seed)*.08):r*(.92+hs(i+seed+9)*.16);const x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;i?X.lineTo(x,y):X.moveTo(x,y)}X.closePath()}
 function burst(cx,cy,r,fill,seed=1,n=14,o={}){if(r<=1)return;X.save();X.lineJoin='round';
   X.translate(10*U,12*U);starPath(cx,cy,r,n,seed);X.fillStyle=C.ti;X.fill();X.translate(-10*U,-12*U);
   starPath(cx,cy,r,n,seed);X.fillStyle=fill;X.fill();X.lineWidth=(o.lw||9)*U;X.strokeStyle=C.ti;X.stroke();
@@ -93,7 +93,7 @@ function tele(cx,cy,s,t,o={}){X.save();X.translate(cx,cy);X.scale(s,s);X.lineJoi
 // transición ¡POW!: estallido que tapa y luego se abre desde el centro
 function pow(t,T,word,seed,fill=C.am,inner=C.ro){const a=P(t,T-.3,.3),b=P(t,T,.32);if(a<=0||b>=1)return;X.save();
   if(t<T){const r=DG*.95*ex(a)*.75;burst(CX,CY,r,fill,seed,16,{in:inner,lw:12});ink(word,CX,CY,fit(word,r*1.1,L(320,300)*U),{rot:-.08,sc:.6+.4*ex(a),c:C.am,d:14})}
-  else{X.beginPath();X.rect(0,0,W,H);starPath(CX,CY,DG*.75*ex(b)+1,16,seed+5,.82);X.fillStyle=fill;X.fill('evenodd');X.lineWidth=12*U;X.strokeStyle=C.ti;starPath(CX,CY,DG*.75*ex(b)+1,16,seed+5,.82);X.stroke()}
+  else{X.beginPath();X.rect(0,0,W,H);starPath(CX,CY,DG*.75*ex(b)+1,16,seed+5,.82,true);X.fillStyle=fill;X.fill('evenodd');X.lineWidth=12*U;X.strokeStyle=C.ti;starPath(CX,CY,DG*.75*ex(b)+1,16,seed+5,.82);X.stroke()}
   X.restore()}
 // ==================== PROMO 1 · ¡MIRÁ NUESTRA PROGRAMACIÓN! ====================
 function p1(t){
