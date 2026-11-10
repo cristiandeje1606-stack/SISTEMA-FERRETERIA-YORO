@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Archivo;src:url(fonts/archivo.woff2) format('woff2');font-weight:100 900;font-stretch:62% 125%}
+@font-face{font-family:Fig;src:url(fonts/figtree-latin-700-normal.woff2);font-weight:700}
+@font-face{font-family:Fig;src:url(fonts/figtree-latin-800-normal.woff2);font-weight:800}
+@font-face{font-family:Fig;src:url(fonts/figtree-latin-500-normal.woff2);font-weight:500}
+html,body{margin:0;background:#000;overflow:hidden}canvas{display:block}
+</style>
+<script src="lib/d3.min.js"></script><script src="lib/topojson.min.js"></script><script src="lib/mundo.js"></script><script src="tiempos.js"></script>
+</head><body><canvas id="c"></canvas>
+<script>
+const Q=new URLSearchParams(location.search);const W=+Q.get('w')||1920,H=+Q.get('h')||1080;
+const cv=document.getElementById('c');cv.width=W;cv.height=H;const X=cv.getContext('2d');
+const TV=W>H,U=Math.min(W,H)/1080,CX=W/2,CY=H/2,L=(a,b)=>TV?a:b;
+const K={noche:'#06121F',marino:'#0B2238',cian:'#08E1FF',azul:'#4C8FE2',ambar:'#FDAE03',naranja:'#F6901C',brasa:'#EA4F3D',rojo:'#E3173E'};
+const cl=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)),P=(t,a,d)=>cl((t-a)/d);
+const ex=x=>{x=cl(x);return x>=1?1:1-Math.pow(2,-10*x)},ss=x=>{x=cl(x);return x*x*(3-2*x)};
+const bk=(x,s=1.7)=>{x=cl(x);const c3=s+1;return 1+c3*Math.pow(x-1,3)+s*Math.pow(x-1,2)};
+const hs=i=>{const s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)};
+// ---------- tiempos de la voz ----------
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+function A(word,n=1,after=0){let c=0;for(const w of TJ.w){if(w.s<after)continue;if(norm(w.w)===norm(word)){c++;if(c===n)return w.s}}console.error('ancla',word);return 9999}
+const DUR=TJ.dur,LOGO_T=TJ.logo,SPOTS=TJ.tl.filter(x=>x.k==='spot');
+const T={
+  frio:A('Así'),vive:A('Vive'),id:A('Esto'),zam:A('Tomás'),enc:A('encuesta'),dice:A('Él'),
+  plata:A('Según'),m11:A('11'),m20:A('20',1,40),resp:A('responde')-0.5,
+  num:A('Del',1,50),h2120:A('homicidios',1,50)-1.0,son:A('Son',1,55),siete:A('hondureños',1,60)-0.3,m535:A('535'),ya:A('Ya',1,70),
+  leyes:A('mayo'),sep:A('septiembre'),oct:A('octubre',1,85),
+  op:A('Leyes',1,88),mor:A('mordaza'),clibre:A('advierte')-0.4,corte:A('Organizaciones'),opos:A('oposición')-0.4,
+  pren:A('Sólo'),a60:A('agresiones')-0.4,medios:A('Medios'),rsf:A('puesto')-0.3,
+  cierre:A('Señores'),bala:A('anuncios',1,129),hosp:A('hospitales'),esc:A('escuelas'),seg:A('seguridad',1,136),menos:A('Menos',1,139),mas:A('más',1,140),
+  crisis:A('Honduras',1,142),inst:A('institucional',1,142),libex:A('libertad',1,146)
+};
+// ---------- recursos ----------
+const IMG={};['zambrano','lempiras','policia','tegu1','tegu2','tegu3','logo'].forEach(n=>{const i=new Image();i.src=n==='logo'?'logo.png':`img/${n}.jpg`;IMG[n]=i});
+const fc=new Map();function sf(i){i=Math.max(1,Math.min(865,Math.round(i)));if(fc.has(i))return fc.get(i);const im=new Image();im.src=`sp/f_${String(i).padStart(4,'0')}.jpg`;const p=im.decode().then(()=>im);fc.set(i,p);if(fc.size>30)fc.delete(fc.keys().next().value);return p}
+let FEATS=null;
+// ---------- texto ----------
+function txt(s,x,y,sz,o={}){X.save();X.font=`${o.w||900} ${sz}px ${o.f||'Archivo'}`;X.fontStretch=o.st||'normal';if(o.ls)X.letterSpacing=o.ls+'px';X.textAlign=o.al||'center';X.textBaseline='middle';
+  if(o.grad){const g=X.createLinearGradient(0,y-sz/2,0,y+sz/2);o.grad.forEach((c,i)=>g.addColorStop(i/(o.grad.length-1),c));X.fillStyle=g}else X.fillStyle=o.c||'#fff';
+  if(o.glow){X.shadowColor=o.glow;X.shadowBlur=o.gb||26*U}X.fillText(s,x,y);X.restore()}
+function mw(s,sz,o={}){X.save();X.font=`${o.w||900} ${sz}px ${o.f||'Archivo'}`;X.fontStretch=o.st||'normal';if(o.ls)X.letterSpacing=o.ls+'px';const m=X.measureText(s).width;X.restore();return m}
+const fit=(s,maxW,max,o={st:'expanded'})=>Math.min(max,maxW/mw(s,100,o)*100);
+function wrap(s,maxW,sz,o){const ws=s.split(' ');const out=[];let cur='';for(const w of ws){const t=cur?cur+' '+w:w;if(mw(t,sz,o)>maxW&&cur){out.push(cur);cur=w}else cur=t}if(cur)out.push(cur);return out}
+// palabra que sube desde máscara
+function rise(s,x,y,sz,t0,t,o={}){const p=ex(P(t,t0,.5));if(p<=0)return;X.save();const m=mw(s,sz,o);const al=o.al||'center';const x0=al==='left'?x:x-m/2;
+  X.beginPath();X.rect(x0-20*U,y-sz*.7,m+40*U,sz*1.4);X.clip();txt(s,x,y+(1-p)*sz*1.1,sz,o);X.restore()}
+// ---------- fondos ----------
+function cover(im,x,y,w,h,z=1,fx=.5,fy=.5){const r=Math.max(w/im.width,h/im.height)*z;const iw=im.width*r,ih=im.height*r;X.drawImage(im,x+(w-iw)*fx,y+(h-ih)*fy,iw,ih)}
+function fondo(im,t,t0,dark=.62,fx=.5,fy=.5){X.save();X.filter=`blur(${2*U}px) saturate(.85)`;cover(im,-20*U,-20*U,W+40*U,H+40*U,1.06+.05*P(t,t0,14),fx,fy);X.restore();
+  X.fillStyle=`rgba(6,18,31,${dark})`;X.fillRect(0,0,W,H);const g=X.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(6,18,31,.2)');g.addColorStop(1,'rgba(6,18,31,.85)');X.fillStyle=g;X.fillRect(0,0,W,H)}
+function base(t){const g=X.createLinearGradient(0,0,W,H);g.addColorStop(0,'#06121F');g.addColorStop(1,'#0B2238');X.fillStyle=g;X.fillRect(0,0,W,H);
+  X.save();X.strokeStyle='rgba(8,225,255,.05)';X.lineWidth=1;for(let x=(t*12*U)%(60*U);x<W;x+=60*U){X.beginPath();X.moveTo(x,0);X.lineTo(x,H);X.stroke()}X.restore()}
+function vineta(a=.55){const g=X.createRadialGradient(CX,CY,Math.min(W,H)*.35,CX,CY,Math.max(W,H)*.78);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(0,0,0,${a})`);X.fillStyle=g;X.fillRect(0,0,W,H)}
+function particulas(t,k=1){X.save();X.globalCompositeOperation='lighter';for(let i=0;i<40;i++){const x=(hs(i)*W+t*(10+hs(i+3)*30)*U)%W,y=(hs(i+7)*H-t*(6+hs(i+9)*14)*U+H*10)%H;const a=(.15+.35*hs(i+5))*k*(.6+.4*Math.sin(t*2+i));
+  X.fillStyle=i%3?`rgba(8,225,255,${a})`:`rgba(253,174,3,${a})`;X.beginPath();X.arc(x,y,(1+hs(i+11)*2.4)*U,0,7);X.fill()}X.restore()}
+// ---------- piezas de vidrio ----------
+function glass(x,y,w,h,o={}){X.save();X.fillStyle=o.bg||'rgba(11,34,56,.72)';X.strokeStyle=o.st||'rgba(8,225,255,.45)';X.lineWidth=2*U;X.beginPath();X.roundRect(x,y,w,h,o.r||18*U);X.fill();X.stroke();
+  X.fillStyle=o.acc||K.cian;X.fillRect(x,y+18*U,6*U,h-36*U);X.restore()}
+function fotoPanel(im,x,y,w,h,t,t0,cred,o={}){const p=ex(P(t,t0,.6));if(p<=0)return;X.save();X.globalAlpha=p;X.translate((1-p)*-60*U,0);
+  X.save();X.beginPath();X.roundRect(x,y,w,h,18*U);X.clip();cover(im,x,y,w,h,1.04+.06*P(t,t0,10),o.fx||.5,o.fy||.4);const g=X.createLinearGradient(0,y+h*.6,0,y+h);g.addColorStop(0,'rgba(6,18,31,0)');g.addColorStop(1,'rgba(6,18,31,.75)');X.fillStyle=g;X.fillRect(x,y,w,h);X.restore();
+  X.strokeStyle='rgba(8,225,255,.6)';X.lineWidth=3*U;X.beginPath();X.roundRect(x,y,w,h,18*U);X.stroke();
+  if(cred)txt(cred,x+w-14*U,y+h-18*U,15*U,{f:'Fig',w:700,al:'right',c:'rgba(255,255,255,.85)'});X.restore()}
+function zocalo(t,t0,x,y,nombre,cargo,w){const p=ex(P(t,t0,.5));if(p<=0)return;const h1=64*U,h2=44*U;X.save();X.fillStyle=K.rojo;X.fillRect(x,y,w*p,h1);X.fillStyle='rgba(6,18,31,.92)';X.fillRect(x,y+h1,w*ex(P(t,t0+.15,.5)),h2);
+  X.beginPath();X.rect(x,y,w*p,h1+h2);X.clip();txt(nombre,x+24*U,y+h1/2+2*U,fit(nombre,w-48*U,38*U),{st:'expanded',al:'left'});txt(cargo,x+24*U,y+h1+h2/2,24*U,{f:'Fig',w:700,al:'left',c:'#CFE9FF'});X.restore()}
+function tarjeta(t,t0,x,y,w,fecha,hecho,o={}){const p=ex(P(t,t0,.5));if(p<=0)return 0;const sz=o.sz||L(34,36)*U;const ls=wrap(hecho,w-60*U,sz,{st:'expanded',w:800});const h=(o.fecha!==false?50*U:16*U)+ls.length*sz*1.22+30*U;
+  X.save();X.globalAlpha=p;X.translate((1-p)*80*U,0);glass(x,y,w,h,{acc:o.acc||K.ambar});
+  if(fecha)txt(fecha,x+32*U,y+34*U,26*U,{f:'Archivo',w:800,st:'condensed',al:'left',c:o.acc||K.ambar,ls:2});
+  ls.forEach((l,i)=>txt(l,x+32*U,y+(fecha?70*U:40*U)+i*sz*1.22,sz,{st:'expanded',w:800,al:'left'}));
+  if(o.fuente)txt(o.fuente,x+w-20*U,y+h-16*U,16*U,{f:'Fig',w:700,al:'right',c:'rgba(207,233,255,.7)'});X.restore();return h}
+function contador(t,t0,x,y,val,dec,pre,suf,sz,o={}){const p=ss(P(t,t0,1.3));if(P(t,t0,.01)<=0)return;const v=val*p;const s=pre+v.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})+suf;
+  const sc=t-t0<.25?bk(P(t,t0,.25),2):1;X.save();X.translate(x,y);X.scale(sc,sc);txt(s,0,0,sz,{st:'expanded',grad:['#ffffff','#9ff3ff',K.cian],glow:'rgba(8,225,255,.45)',al:o.al||'center'});X.restore()}
+function sello(t,t0,x,y,s,sz,rot=-.12,col=K.rojo){const p=P(t,t0,.35);if(p<=0)return;const sc=2.4-1.4*bk(p,1.4);X.save();X.translate(x,y);X.rotate(rot);X.scale(sc,sc);X.globalAlpha=cl(p*3);
+  const m=mw(s,sz,{st:'expanded'})+50*U;X.strokeStyle=col;X.lineWidth=7*U;X.strokeRect(-m/2,-sz*.75,m,sz*1.5);X.lineWidth=2.5*U;X.strokeRect(-m/2+9*U,-sz*.75+9*U,m-18*U,sz*1.5-18*U);
+  txt(s,0,sz*.04,sz,{st:'expanded',c:col});X.restore()}
+function franja(t,t0,y,s,sz,col=K.rojo){const p=ex(P(t,t0,.45));if(p<=0)return;const m=mw(s,sz,{st:'expanded'})+80*U;X.save();X.fillStyle=col;X.fillRect(CX-m/2,y-sz*.78,m*p,sz*1.56);
+  X.beginPath();X.rect(CX-m/2,y-sz*.78,m*p,sz*1.56);X.clip();txt(s,CX,y+2*U,sz,{st:'expanded'});X.restore()}
+function opinion(t,t0,t1){const k=ex(P(t,t0,.4))*(1-ss(P(t,t1-.3,.3)));if(k<=0)return;const x=L(60,40)*U,y=L(118,325)*U;X.save();X.globalAlpha=k;X.fillStyle=K.rojo;X.fillRect(x,y,mw('OPINIÓN',30*U,{st:'expanded',ls:6})+50*U,50*U);
+  txt('OPINIÓN',x+25*U,y+26*U,30*U,{st:'expanded',al:'left',ls:6});X.restore()}
+function fuente(t,t0,t1,s){const k=ss(P(t,t0,.4))*(1-ss(P(t,t1-.3,.3)));if(k<=0)return;X.save();X.globalAlpha=k*.95;const sz=L(19,20)*U;const y=L(H-118*U,H-448*U);
+  const m=Math.min(mw(s,sz,{f:'Fig',w:700})+30*U,W-60*U);X.fillStyle='rgba(6,18,31,.8)';X.fillRect(L(60,30)*U,y-sz,m,sz*2);X.fillStyle=K.cian;X.fillRect(L(60,30)*U,y-sz,4*U,sz*2);
+  X.font=`700 ${sz}px Fig`;X.fillStyle='#E6F7FF';X.textBaseline='middle';X.textAlign='left';X.fillText('Fuente: '+s,L(74,44)*U,y+1*U,W-90*U);X.restore()}
+// cintas cian y fuego (transición)
+function cintas(t,t0){const p=P(t,t0-.35,.8);if(p<=0||p>=1)return;X.save();X.translate(CX,CY);X.rotate(-.42);const D=Math.hypot(W,H);
+  [[K.cian,'#4C8FE2',0],[K.ambar,K.brasa,.08]].forEach(([a,b,dl],i)=>{const q=ss(cl((p-dl)/.85));const x=-D*1.1+D*2.2*q;const g=X.createLinearGradient(x-D*.3,0,x+D*.3,0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.3,a);g.addColorStop(.7,b);g.addColorStop(1,'rgba(0,0,0,0)');
+    X.fillStyle=g;X.fillRect(x-D*.35,(i?.18:-.22)*D*.5-D*.09,D*.7,D*.18)});X.restore()}
+function flash(t,t0,k=.6,d=.3){const f=1-P(t,t0,d);if(t>=t0&&f>0){X.fillStyle=`rgba(255,255,255,${f*f*k})`;X.fillRect(0,0,W,H)}}
+function shake(t,t0,a=12){const d=t-t0;if(d<0||d>.6)return[0,0];const e=Math.exp(-d*9)*a*U;return[Math.sin(d*80)*e,Math.cos(d*63)*e]}
+// mapa de Honduras
+function mapaHN(cx,cy,s,k,col='rgba(76,143,226,.35)',hn=K.ambar){if(!FEATS||k<=0)return;const hnF=FEATS.find(f=>+f.id===340);const pr=d3.geoMercator().fitSize([s,s*.62],hnF);const pa=d3.geoPath(pr,X);
+  X.save();X.globalAlpha=k;X.translate(cx-s/2,cy-s*.31);FEATS.forEach(f=>{const nb=[320,222,558].includes(+f.id);if(+f.id===340||nb){X.beginPath();pa(f);X.fillStyle=+f.id===340?hn:col;X.fill();X.strokeStyle='rgba(8,225,255,.6)';X.lineWidth=1.5*U;X.stroke()}});
+  const tg=pr([-87.2068,14.0723]);X.fillStyle='#fff';X.beginPath();X.arc(tg[0],tg[1],7*U,0,7);X.fill();X.strokeStyle=K.rojo;X.lineWidth=3*U;X.beginPath();X.arc(tg[0],tg[1],(12+6*Math.sin(Date.now?0:0))*U,0,7);X.stroke();
+  txt('TEGUCIGALPA',tg[0]+14*U,tg[1]-18*U,16*U,{f:'Fig',w:800,al:'left'});X.restore()}
+// fijos
+const TICK='HONDURAS  ·  2,120 HOMICIDIOS DEL 1 DE ENERO AL 27 DE OCTUBRE DE 2026 (SEPOL)  ·  535 MENORES Y JÓVENES MUERTOS DE FORMA VIOLENTA (COIPRODEN)  ·  60 AGRESIONES CONTRA LA LIBERTAD DE EXPRESIÓN EN SEIS MESES (C-LIBRE)  ·  PUESTO 132 DE 180 EN LIBERTAD DE PRENSA (RSF)  ·  ';
+function fijos(t){const k=ss(P(t,8.6,.5))*(1-ss(P(t,LOGO_T-.4,.4)));if(k<=0)return;X.save();X.globalAlpha=k;
+  const lx=L(60,40)*U,ly=L(52,262)*U;X.fillStyle=K.rojo;X.fillRect(lx,ly,8*U,44*U);txt('UNE VISIÓN NOTICIAS · HONDURAS',lx+22*U,ly+23*U,L(24,24)*U,{st:'expanded',al:'left',ls:3});
+  const w=L(150,150)*U,h=w*IMG.logo.height/IMG.logo.width;X.globalAlpha=k*.9;X.drawImage(IMG.logo,W-w-L(54,40)*U,L(34,248)*U,w,h);X.globalAlpha=k;
+  const th=L(54,58)*U,ty=L(H-th-34*U,H-408*U);X.fillStyle=K.rojo;X.fillRect(0,ty,W,th);X.fillStyle='rgba(6,18,31,.96)';const bw=L(200,170)*U;X.fillRect(0,ty,bw,th);txt('EN DATOS',bw/2,ty+th/2+2*U,24*U,{st:'expanded'});
+  X.beginPath();X.rect(bw,ty,W-bw,th);X.clip();const sz=th*.44;const tw=mw(TICK,sz,{f:'Fig',w:800});let x=bw+20*U-((t*140*U)%tw);while(x<W){txt(TICK,x,ty+th/2+2*U,sz,{f:'Fig',w:800,al:'left'});x+=tw}X.restore()}
+// ---------- logo final (solo logo) ----------
+function logoFinal(t){const d=t-LOGO_T;base(t);X.save();X.globalCompositeOperation='lighter';for(let i=0;i<26;i++){const a=i/26*Math.PI*2+d*.15;const l=Math.max(W,H)*ex(P(t,LOGO_T,1.2));X.strokeStyle=i%2?`rgba(8,225,255,${.12*(1-P(t,LOGO_T+2.5,1.5))})`:`rgba(253,174,3,${.1*(1-P(t,LOGO_T+2.5,1.5))})`;
+  X.lineWidth=(2+hs(i)*5)*U;X.beginPath();X.moveTo(CX,CY);X.lineTo(CX+Math.cos(a)*l,CY+Math.sin(a)*l);X.stroke()}X.restore();particulas(t,1);
+  const w=L(720,820)*U,h=w*IMG.logo.height/IMG.logo.width;const p=P(t,LOGO_T+.1,1.4);X.save();X.beginPath();X.rect(CX-w/2-10,CY-h/2-10,(w+20)*ss(p),h+20);X.clip();
+  const sc=1+.04*(1-ex(P(t,LOGO_T,2)));X.translate(CX,CY);X.scale(sc,sc);X.shadowColor='rgba(8,225,255,.55)';X.shadowBlur=40*U;X.drawImage(IMG.logo,-w/2,-h/2,w,h);X.restore();
+  const sx=CX-w/2+(w+20)*ss(p);if(p>0&&p<1){X.save();X.globalCompositeOperation='lighter';const g=X.createLinearGradient(sx-60*U,0,sx+10*U,0);g.addColorStop(0,'rgba(8,225,255,0)');g.addColorStop(1,'rgba(255,255,255,.9)');X.fillStyle=g;X.fillRect(sx-60*U,CY-h/2,70*U,h);X.restore()}
+  const sh=P(t,LOGO_T+2.0,1.0);if(sh>0&&sh<1){X.save();X.beginPath();X.rect(CX-w/2,CY-h/2,w,h);X.clip();X.globalCompositeOperation='lighter';const gx=CX-w/2-200*U+(w+400*U)*sh;const g=X.createLinearGradient(gx-120*U,0,gx+120*U,H*.2);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,.35)');g.addColorStop(1,'rgba(255,255,255,0)');X.fillStyle=g;X.fillRect(0,0,W,H);X.restore()}
+  vineta(.5);flash(t,LOGO_T,.5,.4)}
+// ---------- anuncio del Congreso (spot) ----------
+async function spotSeg(t,seg,etiqueta,cita){const i=(seg.src0+(t-seg.t0))*30+1;const im=await sf(i);
+  if(TV){cover(im,0,0,W,H,1.0+.03*P(t,seg.t0,4))}else{X.save();X.filter=`blur(${24*U}px) brightness(.45)`;cover(im,-40,-40,W+80,H+80);X.restore();const ph=W*9/16;const y=L(0,560*U);X.drawImage(im,0,y,W,ph);X.strokeStyle='rgba(8,225,255,.6)';X.lineWidth=3*U;X.strokeRect(1,y,W-2,ph)}
+  const gx=X.createLinearGradient(0,H*.55,0,H);gx.addColorStop(0,'rgba(6,18,31,0)');gx.addColorStop(1,'rgba(6,18,31,.8)');X.fillStyle=gx;X.fillRect(0,0,W,H);
+  const k=ex(P(t,seg.t0+.1,.4));X.save();X.globalAlpha=k;const lx=L(60,40)*U,ly=L(52,262)*U;X.fillStyle='rgba(6,18,31,.88)';const lw=mw(etiqueta,26*U,{st:'expanded',ls:3})+46*U;X.fillRect(lx,ly,lw,52*U);X.fillStyle=K.ambar;X.fillRect(lx,ly,8*U,52*U);
+  txt(etiqueta,lx+26*U,ly+27*U,26*U,{st:'expanded',al:'left',ls:3});txt('Captura: anuncio del Congreso Nacional de Honduras · 2026',lx,ly+78*U,18*U,{f:'Fig',w:700,al:'left',c:'rgba(255,255,255,.85)'});X.restore();
+  if(cita){const sz=fit(cita,W*.86,L(64,58)*U);const y=L(H-200*U,1220*U);const p=ex(P(t,seg.t0+.4,.5));X.save();X.globalAlpha=p;txt(cita,CX,y+(1-p)*30*U,sz,{st:'expanded',c:'#fff',glow:'rgba(0,0,0,.8)'});X.restore()}}
+// ---------- render ----------
+window.render=async function(t){X.setTransform(1,0,0,1,0,0);X.globalAlpha=1;X.globalCompositeOperation='source-over';X.filter='none';X.letterSpacing='0px';
+  const sp=SPOTS.find(s=>t>=s.t0-0.15&&t<s.t1+0.25);
+  if(t>=LOGO_T){logoFinal(t);return true}
+  if(sp){await spotSeg(t,sp,sp===SPOTS[0]?'ASÍ SE ANUNCIA EL CONGRESO':'EL ANUNCIO DICE:',sp===SPOTS[1]?'«RECUPERANDO LA PAZ DE HONDURAS»':sp===SPOTS[2]?'«GRACIAS A LAS LEYES QUE APROBAMOS»':null);vineta(.4)}
+  else if(t<T.id){// golpe en frío
+    const im=await sf(6.5*30);X.save();X.filter=`blur(${6*U}px)`;cover(im,-30,-30,W+60,H+60,1.08+.04*P(t,T.frio,6));X.restore();X.fillStyle='rgba(6,18,31,.7)';X.fillRect(0,0,W,H);
+    const [sx,sy]=shake(t,T.frio+1.2,14);X.save();X.translate(sx,sy);
+    const s1='ANUNCIOS';const z1=fit(s1,W*L(.7,.86),L(230,190)*U);const y1=L(CY-90*U,CY-120*U);rise('NO VIVE DE',CX,y1-z1*.85,z1*.32,T.frio+1.0,t,{st:'expanded',ls:6,c:'#CFE9FF'});
+    rise(s1,CX,y1,z1,T.frio+1.2,t,{st:'expanded',grad:['#ffffff','#bfefff']});
+    const s2='VIVE DE RESULTADOS';franja(t,T.vive,y1+z1*.95,s2,fit(s2,W*L(.62,.82),L(76,70)*U));X.restore();
+    txt('Así se anuncia el Congreso Nacional',CX,L(H-170*U,1390*U),L(30,30)*U,{f:'Fig',w:700,c:'rgba(207,233,255,.85)'});
+    flash(t,T.frio+1.2,.5);vineta(.6)}
+  else if(t<T.zam){// identificación
+    base(t);particulas(t);const p=ex(P(t,T.id,.5));const w=L(380,420)*U,h=w*IMG.logo.height/IMG.logo.width;X.save();X.globalAlpha=p;X.drawImage(IMG.logo,CX-w/2,L(CY-250*U,CY-330*U),w,h);X.restore();
+    const s='ESTO ES UNE VISIÓN NOTICIAS';franja(t,T.id+.15,L(CY+150*U,CY+130*U),s,fit(s,W*.86,L(62,52)*U));vineta(.5)}
+  else if(t<T.plata){// Zambrano
+    base(t);particulas(t,.6);const px=L(80,40)*U,py=L(150,360)*U,pw=L(620,1000)*U,ph=L(700,640)*U;
+    fotoPanel(IMG.zambrano,px,py,pw,ph,t,T.zam,'Foto: Wikimedia Commons (CC0)',{fy:.25});
+    zocalo(t,T.zam+.4,px,py+ph-130*U,'TOMÁS ZAMBRANO','Presidente del Congreso Nacional · Partido Nacional',L(700,1000)*U);
+    const cx=L(780,40)*U,cw=L(1060,1000)*U;let y=L(190,1050)*U;
+    y+=tarjeta(t,T.zam+.6,cx,y,cw,'ENERO DE 2026','Asume la presidencia del Congreso Nacional, periodo 2026-2030',{fuente:'El Heraldo · La Prensa',sz:L(34,32)*U})+20*U;
+    y+=tarjeta(t,T.enc,cx,y,cw,'ENCUESTA','55.6 % lo perfila como posible candidato presidencial para 2029',{fuente:'El Espectador HN · Abriendo Brecha',acc:K.cian,sz:L(34,32)*U})+20*U;
+    tarjeta(t,T.dice,cx,y,cw,'«TODAVÍA NOSOTROS NO ANDAMOS EN UNA ASPIRACIÓN»','Tomás Zambrano, al canal HCH. No descarta buscar la candidatura.',{fuente:'Proceso Digital · 26-sep-2026 · ICN Digital',acc:K.rojo,sz:L(30,29)*U});
+    if(TV)mapaHN(W-250*U,H-250*U,300*U,ex(P(t,T.zam+1,.6)));
+    fuente(t,T.zam+.6,T.plata,'El Heraldo, La Prensa, El Espectador HN, Proceso Digital, ICN Digital');vineta(.45)}
+  else if(t<SPOTS[1].t0){// la plata
+    fondo(IMG.lempiras,t,T.plata,.74);particulas(t,.5);
+    const s='¿EN QUÉ SE GASTA?';rise(s,CX,L(200,420)*U,fit(s,W*.8,L(64,58)*U),T.plata,t,{st:'expanded',c:K.ambar});
+    const y1=L(400,640)*U;contador(t,T.m11,CX,y1,11.4,1,'L ',' MILLONES',fit('L 11.4 MILLONES',W*.84,L(130,110)*U));
+    rise('en publicidad institucional',CX,y1+L(90,85)*U,L(40,40)*U,T.m11+.4,t,{f:'Fig',w:800});
+    const y2=y1+L(220,240)*U;contador(t,T.m20,CX,y2,20,0,'MÁS DE L ',' MILLONES',fit('MÁS DE L 20 MILLONES',W*.84,L(100,86)*U));
+    rise('en canastas del Día de la Madre',CX,y2+L(80,75)*U,L(40,40)*U,T.m20+.4,t,{f:'Fig',w:800});
+    const rw=L(1200,1000)*U;tarjeta(t,T.resp,CX-rw/2,L(800,1150)*U,rw,'RESPUESTA DEL CONGRESO','«Esas cifras, por sí solas, no prueban corrupción»',{acc:K.cian,sz:L(32,32)*U});
+    fuente(t,T.plata+.5,SPOTS[1].t0,'Listín Diario, 03-nov-2026, que cita un análisis difundido por UNE TV');
+    txt('Foto: Betipá · CC BY-SA 4.0',W-L(60,40)*U,L(H-150*U,H-480*U),15*U,{f:'Fig',w:700,al:'right',c:'rgba(255,255,255,.7)'});vineta(.5)}
+  else if(t<SPOTS[2].t0){// los números
+    base(t);particulas(t,.5);
+    if(t<T.siete){const y=L(330,560)*U;rise('LO QUE NO DICE EL ANUNCIO',CX,L(190,410)*U,fit('LO QUE NO DICE EL ANUNCIO',W*.8,L(50,44)*U),T.num,t,{st:'expanded',c:K.ambar,ls:3});
+      contador(t,T.h2120,CX,y,2120,0,'','',L(230,220)*U);rise('HOMICIDIOS EN HONDURAS',CX,y+L(140,135)*U,fit('HOMICIDIOS EN HONDURAS',W*.84,L(60,52)*U),T.h2120+.3,t,{st:'expanded'});
+      rise('Del 1 de enero al 27 de octubre de 2026',CX,y+L(205,200)*U,L(30,30)*U,T.h2120+.5,t,{f:'Fig',w:700,c:'#CFE9FF'});
+      // barras 2025 vs 2026
+      const bp=ex(P(t,T.son,.8));if(bp>0){const bx=L(CX-420*U,CX-400*U),by=y+L(280,330)*U,bw=L(840,800)*U,bh=L(46,50)*U;[['2025',2136,'rgba(207,233,255,.5)'],['2026',2120,K.rojo]].forEach(([a,v,c],i)=>{const yy=by+i*(bh+18*U);
+        txt(a,bx-20*U,yy+bh/2,30*U,{st:'expanded',al:'right'});X.fillStyle=c;X.fillRect(bx,yy,bw*(v/2136)*bp,bh);txt(v.toLocaleString('en-US'),bx+bw*(v/2136)*bp-14*U,yy+bh/2+2*U,28*U,{st:'expanded',al:'right'})});
+        sello(t,T.son+.9,CX+L(300,180)*U,by-L(60,70)*U,'APENAS −16',L(44,40)*U,.1,K.ambar)}}
+    else{const px=L(80,40)*U,py=L(150,360)*U,pw=L(760,1000)*U,ph=L(620,520)*U;fotoPanel(IMG.policia,px,py,pw,ph,t,T.siete-.2,'Foto: Zack Clark · Dominio público',{fy:.5});
+      const cx=L(940,CX/U)*U,y=L(330,1010)*U;contador(t,T.siete,L(cx+430*U,CX),L(y-60*U,y),7,0,'','',L(210,190)*U);rise('ASESINADOS CADA DÍA',L(cx+430*U,CX),L(y+70*U,y+115*U),L(48,52)*U,T.siete+.3,t,{st:'expanded'});
+      if(t>=T.m535-.2){const yy=L(y+300*U,y+290*U);contador(t,T.m535,L(cx+430*U,CX),yy,535,0,'','',L(160,150)*U);
+        const s='NIÑOS, ADOLESCENTES Y JÓVENES';rise(s,L(cx+430*U,CX),yy+L(100,100)*U,fit(s,L(880,1000)*U,L(40,44)*U),T.m535+.3,t,{st:'expanded'});
+        rise('muertes violentas de enero a octubre de 2026',L(cx+430*U,CX),yy+L(150,150)*U,L(28,30)*U,T.m535+.5,t,{f:'Fig',w:700,c:'#CFE9FF'});
+        sello(t,T.ya,L(cx+430*U,CX),yy+L(-115,-110)*U,'YA SUPERA TODO 2025',L(36,38)*U,-.08)}
+      if(TV)txt('Imagen de archivo: Policía Nacional en San Francisco, Lempira',px,py+ph+28*U,17*U,{f:'Fig',w:700,al:'left',c:'rgba(207,233,255,.75)'})}
+    fuente(t,T.num+.5,SPOTS[2].t0,t<T.m535?'SEPOL, Secretaría de Seguridad; La Prensa Verifica, 28-oct-2026':'Coiproden, citado por El Heraldo, 08-nov-2026');vineta(.45)}
+  else if(t<T.op){// las leyes, con imágenes del propio anuncio
+    const im=await sf((1.9+((t-T.leyes)*0.55)%4.4)*30);X.save();X.filter='saturate(.7)';cover(im,0,0,W,H,1.06);X.restore();X.fillStyle='rgba(6,18,31,.72)';X.fillRect(0,0,W,H);
+    const s='LAS LEYES';rise(s,L(80,40)*U,L(190,410)*U,L(64,60)*U,T.leyes-.3,t,{st:'expanded',al:'left',c:K.ambar});
+    const cx=L(80,40)*U,cw=L(1100,1000)*U;let y=L(270,500)*U;
+    y+=tarjeta(t,T.leyes,cx,y,cw,'MAYO 2026 · DECRETO 84-2026','Amplía el delito de terrorismo y crea la Agencia Nacional contra el Crimen',{fuente:'La Gaceta 37,148'})+20*U;
+    y+=tarjeta(t,T.sep,cx,y,cw,'SEPTIEMBRE 2026','MS-13, Barrio 18 y Cártel del Diablo, declarados terroristas',{fuente:'La Tribuna',acc:K.cian})+20*U;
+    tarjeta(t,T.oct,cx,y,cw,'OCTUBRE 2026 · 118 VOTOS','Cárcel de por vida para cabecillas, 48 horas de detención y allanamientos exprés',{fuente:'El Heraldo, 27-oct-2026',acc:K.rojo});
+    txt('Imágenes: anuncio del Congreso Nacional',W-L(60,40)*U,L(H-150*U,H-480*U),16*U,{f:'Fig',w:700,al:'right',c:'rgba(255,255,255,.75)'});vineta(.5)}
+  else if(t<T.pren){// opinión: ¿mordaza?
+    fondo(IMG.tegu3,t,T.op,.76,.5,.5);particulas(t,.4);opinion(t,T.op,T.pren);
+    const q1='¿LEYES CONTRA LAS MARAS';const q2='O UNA MORDAZA?';const z=fit(q1,W*L(.8,.88),L(86,70)*U);const y=L(260,500)*U;
+    if(t<T.clibre+0.2){rise(q1,CX,y,z,T.op,t,{st:'expanded'});rise(q2,CX,y+z*1.2,z*1.15,T.op+.8,t,{st:'expanded',c:K.rojo});sello(t,T.mor,CX,y+z*2.9,'¿MORDAZA?',L(80,70)*U,-.1)}
+    else{txt(q1+' '+q2,CX,L(220,440)*U,fit(q1+' '+q2,W*.86,L(44,30)*U),{st:'expanded',c:'#CFE9FF'});const cx=L(160,40)*U,cw=W-2*cx;let yy=L(300,520)*U;
+      yy+=tarjeta(t,T.clibre,cx,yy,cw,'C-LIBRE ADVIERTE','El Decreto 84 amplía la vigilancia del Estado y pone en riesgo la confidencialidad de las fuentes periodísticas',{acc:K.rojo,fuente:'C-Libre, comunicado sobre el Decreto 84-2026'})+18*U;
+      yy+=tarjeta(t,T.corte,cx,yy,cw,'ANTE LA CORTE SUPREMA','Organizaciones campesinas presentan recurso de inconstitucionalidad: «busca criminalizar la protesta social»',{acc:K.ambar,fuente:'El Diario de Hoy'})+18*U;
+      tarjeta(t,T.opos,cx,yy,cw,'EN EL CONGRESO','La oposición pidió cautela con los delitos ligados a «expresiones visuales»',{acc:K.cian,fuente:'El Heraldo, 27-oct-2026'})}
+    txt('Foto: Ian Mackenzie · CC BY 2.0',W-L(60,40)*U,L(H-150*U,H-480*U),15*U,{f:'Fig',w:700,al:'right',c:'rgba(255,255,255,.7)'});vineta(.5)}
+  else if(t<T.cierre){// la prensa
+    fondo(IMG.tegu1,t,T.pren,.78);particulas(t,.5);const s='LA PRENSA BAJO PRESIÓN';rise(s,CX,L(200,420)*U,fit(s,W*.82,L(60,52)*U),T.pren-.2,t,{st:'expanded',c:K.ambar});
+    const y=L(380,620)*U;contador(t,T.a60,L(CX-380*U,CX),y,60,0,'','',L(200,190)*U);rise('AGRESIONES',L(CX-380*U,CX),y+L(120,115)*U,L(50,52)*U,T.a60+.3,t,{st:'expanded'});
+    rise('contra la libertad de expresión · ene-jun 2026',L(CX-380*U,CX),y+L(175,170)*U,L(26,28)*U,T.a60+.5,t,{f:'Fig',w:700,c:'#CFE9FF'});
+    const cx=L(CX+80*U,40*U),cw=L(820,1000)*U;tarjeta(t,T.medios,cx,L(300,880)*U,cw,'CRITERIO.HN · CONTRACORRIENTE','Medios independientes denuncian bloqueos, vigilancia y ataques',{acc:K.rojo,fuente:'Red Centroamericana de Periodistas'});
+    const rp=ex(P(t,T.rsf,.9));if(rp>0){const bx=L(CX+80*U,60*U),by=L(640,1200)*U,bw=L(820,960)*U,bh=40*U;X.save();X.globalAlpha=rp;txt('LIBERTAD DE PRENSA · RSF 2026',bx,by-30*U,26*U,{st:'expanded',al:'left',c:K.ambar});
+      X.fillStyle='rgba(207,233,255,.18)';X.fillRect(bx,by,bw,bh);X.fillStyle=K.rojo;const f=132/180;X.fillRect(bx,by,bw*f*rp,bh);X.fillStyle='#fff';X.fillRect(bx+bw*f*rp-3*U,by-10*U,6*U,bh+20*U);
+      txt('PUESTO 132 DE 180',bx+bw*f*rp,by+bh+42*U,36*U,{st:'expanded',al:'center'});X.restore()}
+    fuente(t,T.pren+.5,T.cierre,'C-Libre, citado por la SIP · Reporteros Sin Fronteras 2026');txt('Foto: Nan Palmero · CC BY 2.0',W-L(60,40)*U,L(H-150*U,H-480*U),15*U,{f:'Fig',w:700,al:'right',c:'rgba(255,255,255,.7)'});vineta(.5)}
+  else if(t<T.crisis){// cierre de opinión
+    fondo(IMG.tegu2,t,T.cierre,.74);particulas(t,.6);opinion(t,T.cierre,T.crisis);const [sx,sy]=shake(t,T.bala+.3,12);X.save();X.translate(sx,sy);
+    const s1='LOS ANUNCIOS';const s2='NO DETIENEN UNA BALA';const z=fit(s2,W*L(.82,.9),L(110,84)*U);const y=L(300,540)*U;
+    rise('SEÑORES DEL CONGRESO:',CX,y-z*1.2,z*.42,T.cierre,t,{st:'expanded',c:'#CFE9FF',ls:4});rise(s1,CX,y,z,T.bala-.2,t,{st:'expanded'});rise(s2,CX,y+z*1.08,z,T.bala+.3,t,{st:'expanded',c:K.rojo});X.restore();
+    const tiles=[['HOSPITALES',T.hosp],['ESCUELAS',T.esc],['SEGURIDAD REAL',T.seg]];const tw=L(380,300)*U,gap=L(40,24)*U,ty=L(640,920)*U;
+    tiles.forEach(([s,t0],i)=>{const p=ex(P(t,t0,.4));if(p<=0)return;const x=CX-(tw*3+gap*2)/2+i*(tw+gap);X.save();X.globalAlpha=p;X.translate(0,(1-p)*40*U);glass(x,ty,tw,L(120,110)*U,{acc:[K.cian,K.ambar,K.rojo][i]});
+      txt(s,x+tw/2+4*U,ty+L(60,55)*U,fit(s,tw-50*U,L(40,34)*U),{st:'expanded'});X.restore()});
+    franja(t,T.menos,L(880,1150)*U,'MENOS PUBLICIDAD.',fit('MENOS PUBLICIDAD.',W*.7,L(64,58)*U),'rgba(6,18,31,.95)');franja(t,T.mas,L(980,1260)*U,'MÁS RESULTADOS.',fit('MÁS RESULTADOS.',W*.7,L(64,58)*U),K.rojo);
+    txt('Foto: Hondureñoal100 · CC BY-SA 4.0',W-L(60,40)*U,L(H-150*U,H-480*U),15*U,{f:'Fig',w:700,al:'right',c:'rgba(255,255,255,.7)'});vineta(.5)}
+  else{// Honduras al borde
+    base(t);X.fillStyle='rgba(0,0,0,.35)';X.fillRect(0,0,W,H);mapaHN(CX,L(CY-40*U,CY-120*U),L(1100,980)*U,ex(P(t,T.crisis,1))*.55,'rgba(76,143,226,.18)','rgba(227,23,62,.55)');particulas(t,.5);
+    const z=fit('HONDURAS',W*L(.6,.84),L(200,180)*U);rise('HONDURAS',CX,L(CY-130*U,CY-200*U),z,T.crisis,t,{st:'expanded',grad:['#ffffff','#ffd0d6']});
+    const s1='AL BORDE DE UNA CRISIS INSTITUCIONAL';franja(t,T.inst-.6,L(CY+50*U,CY),s1,fit(s1,W*.86,L(56,46)*U));
+    const s2='Y DE LIBERTAD DE EXPRESIÓN';franja(t,T.libex-.2,L(CY+150*U,CY+100*U),s2,fit(s2,W*.8,L(56,46)*U),'rgba(6,18,31,.95)');vineta(.65)}
+  if(!sp)cintas(t,0);
+  for(const tt of [T.id,T.zam,T.plata,T.num,T.leyes,T.op,T.pren,T.cierre,T.crisis])cintas(t,tt);
+  for(const s of SPOTS.slice(1))cintas(t,s.t0);
+  fijos(t);
+  const fo=P(t,DUR-.6,.6);if(fo>0){X.fillStyle=`rgba(0,0,0,${fo})`;X.fillRect(0,0,W,H)}
+  return true};
+Promise.all([document.fonts.load('900 100px Archivo'),document.fonts.load('800 100px Archivo'),document.fonts.load('800 100px Fig'),document.fonts.load('700 100px Fig'),...Object.values(IMG).map(i=>i.decode()),sf(1)]).then(()=>{FEATS=topojson.feature(MUNDO,MUNDO.objects.countries).features;window.ready=true});
+</script></body></html>
