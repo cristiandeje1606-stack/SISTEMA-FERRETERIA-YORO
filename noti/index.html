@@ -159,7 +159,7 @@ function p3(t){
     lower(t,2.4,L(110*U,60*U),L(H-262*U,H-640*U),'UNE VISIÓN NOTICIAS','Santa Bárbara · Honduras',L(820,820)*U);
   }else if(t<9.5){bg();
     // izquierda/arriba: viñeta de cómic con la mascota reportera; derecha/abajo: motion
-    const m=40*U;const A=TV?[m+20*U,120*U,W*.46,H-340*U]:[m,330*U,W-2*m,700*U];
+    const m=40*U;const A=TV?[m+20*U,120*U,W*.46,H-340*U]:[m,320*U,W-2*m,600*U];
     panel(t,4.5,...A,'l',(w,h)=>{rays(w/2,h*.7,18,C.am,'#FFF27A',t*.3);dots(0,0,w,h,'rgba(255,45,85,.45)',20*U,8*U,3);
       const ty=h*.66,ts=L(.95,1.0);tele(w/2,ty,ts*bk(P(t,4.6,.45),2),t,{talk:t>5.1&&t<7.4});
       // micrófono
@@ -167,12 +167,12 @@ function p3(t){
       dots(-34*U,-40*U,68*U,68*U,'rgba(17,17,17,.5)',10*U,3*U,2);X.fillStyle=C.ro;X.fillRect(-22*U,40*U,44*U,34*U);X.strokeRect(-22*U,40*U,44*U,34*U);X.restore();
       bubble(t,5.1,w/2,h*.17,w*.86,h*.24,w*.48,h*.36,['¡SIGUE','LAS NOTICIAS!'],L(58,64)*U,{f:'Bang'})},{rot:-.012});
     // motion: titulares que entran con barras
-    const bx=TV?W*.54:m,by=TV?H*.2:1080*U,bw=TV?W*.42:W-2*m;
+    const bx=TV?W*.54:m,by=TV?H*.2:950*U,bw=TV?W*.42:W-2*m;
     const items=[['NOTICIAS',C.cian,5.4],['DE',C.am,5.8],['UNE VISIÓN',C.ro,6.2]];
     const SZ=Math.min(fitA('UNE VISIÓN',bw*.78,L(110,80)*U),fitA('NOTICIAS',bw*.78,L(110,80)*U))/.82;items.forEach(([s,c,t0],i)=>{const p=ex(P(t,t0,.5));if(p<=0)return;const sz=SZ;const y=by+i*sz*1.18+L(40,20)*U;const w2=(mwA(s,sz*.82)+70*U)*p;
       X.save();X.translate(bx,y);X.transform(1,0,-.18,1,0,0);X.fillStyle=C.ti;X.fillRect(10*U,10*U,w2,sz*1.05);X.fillStyle=c;X.fillRect(0,0,w2,sz*1.05);X.lineWidth=7*U;X.strokeStyle=C.ti;X.strokeRect(0,0,w2,sz*1.05);
       X.beginPath();X.rect(0,0,w2,sz*1.05);X.clip();mtxt(s,35*U+(1-p)*-80*U,sz*.55,sz*.82,{al:'left',c:i===1?C.ti:'#fff',ls:2});X.restore()});
-    if(TV)lower(t,7.0,W*.54,H*.66,'EN TODAS NUESTRAS','REDES SOCIALES',W*.4);else lower(t,7.0,m,1375*U,'EN TODAS NUESTRAS','REDES SOCIALES',W-2*m);
+    if(TV)lower(t,7.0,W*.54,H*.66,'EN TODAS NUESTRAS','REDES SOCIALES',W*.4);else lower(t,7.0,m,1350*U,'EN TODAS NUESTRAS','REDES SOCIALES',W-2*m);
     scan(t,4.5,.5);
   }else if(t<15.5){bg();rings(L(W*.3,CX),L(CY-20*U,CY-200*U),L(360,380)*U,t,1);
     const tilt=Math.sin((t-9.5)*1.3);const pp=bk(P(t,9.5,.6),1.6);phone(L(W*.3,CX),L(CY-10*U,CY-210*U)+(1-pp)*H,L(1.12,1.05),t,tilt);
