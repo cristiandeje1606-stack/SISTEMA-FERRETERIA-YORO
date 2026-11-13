@@ -50,7 +50,7 @@ function hnMap(t,k,zoom){if(k<=0)return;const gg=g06();const pr=d3.geoMercator()
   for(let i=0;i<3;i++){const q=((t*.9+i/3)%1);X.strokeStyle=`rgba(8,225,255,${1-q})`;X.lineWidth=3*U;X.beginPath();X.arc(a[0],a[1],q*140*U,0,7);X.stroke()}
   X.fillStyle='#fff';X.beginPath();X.arc(a[0],a[1],10*U,0,7);X.fill();X.fillStyle=K.cian;X.beginPath();X.arc(b[0],b[1],7*U,0,7);X.fill();
   X.restore();return[a,b]}
-SCENE(6,{dur:25,events:[['riser',-.5+1],['golpe',.5],['whoosh',2.3],['golpe',2.5],['pop',3.4],['pop',3.9],['whoosh_largo',4.7],['golpe',5],['pop',6.5],['campana',8.3],['riser',8.5],['golpe',9.5],['pop',10.6],['obturador',11.4],['whoosh',12.8],['golpe',13],['swipe',14.7],['golpe',14.75],['whoosh',16.3],['golpe',16.5],['swipe',18.4],['golpe',18.5],['riser',20],['golpe',21],['campana',21.6],['whoosh',22.8]],
+SCENE(6,{dur:25,events:[['whoosh',.1],['golpe',.5],['whoosh',2.3],['golpe',2.5],['pop',3.4],['pop',3.9],['whoosh_largo',4.7],['golpe',5],['pop',6.5],['campana',8.3],['riser',8.5],['golpe',9.5],['pop',10.6],['obturador',11.4],['whoosh',12.8],['golpe',13],['swipe',14.7],['golpe',14.75],['whoosh',16.3],['golpe',16.5],['swipe',18.4],['golpe',18.5],['riser',20],['golpe',21],['campana',21.6],['whoosh',22.8]],
   musica:{estilo:'news',bpm:120,tono:'Gm',hits:HITS,final:21},
   draw(t){
     bg('#030B14',K.noche);grid(t,.8,'8,225,255',80);
@@ -92,7 +92,7 @@ SCENE(6,{dur:25,events:[['riser',-.5+1],['golpe',.5],['whoosh',2.3],['golpe',2.5
       rise('SANTA',W*.06,CY-170*U,210*U,9.8,t,{f:'Bebas',w:400,al:'left',ls:6*U});
       rise('BÁRBARA',W*.06,CY+10*U,210*U,10.0,t,{f:'Bebas',w:400,al:'left',ls:6*U,c:K.cian,glow:'rgba(8,225,255,.45)'});
       tag('HONDURAS',W*.06,CY+170*U,10.6,t,{acc:K.ambar,bg:'rgba(253,174,3,.14)'});
-      const lp=ex(P(t,11.2,.5));if(lp>0){const[a,b]=pts;X.strokeStyle=K.cian;X.lineWidth=2.5*U;X.beginPath();X.moveTo(b[0],b[1]);const ex2=b[0]+120*U*lp,ey=b[1]-120*U*lp;X.lineTo(ex2,ey);X.lineTo(ex2+40*U*lp,ey);X.stroke();
+      const lp=ex(P(t,11.2,.5));if(lp>0&&pts){const[a,b]=pts;X.strokeStyle=K.cian;X.lineWidth=2.5*U;X.beginPath();X.moveTo(b[0],b[1]);const ex2=b[0]+120*U*lp,ey=b[1]-120*U*lp;X.lineTo(ex2,ey);X.lineTo(ex2+40*U*lp,ey);X.stroke();
         tag('SAN JOSÉ DE COLINAS',ex2+40*U,ey,11.4,t,{sz:36*U})}
       X.restore()}
     // ---- D: NUESTRA GENTE / TIERRA (13–16.5)
