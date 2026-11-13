@@ -58,12 +58,12 @@ SCENE(15,{dur:D,draw(t){
     const hp=ex(P(t,.9,.5));const hx=lerp(W+200,W*.78,hp)-sw*W*.55,hy=CY+L(60,80);s15_touch(hx,hy,t>1.3&&t<2.15?1:0);s15_hand(hx,hy,L(.8,.95),hp*(1-ss(P(t,2.1,.3))),t>1.3&&t<2.15?1:0)}
   // ===== 1 · deslizar tarjetas (2.3–5.9) =====
   if(t>=2.3&&t<6.0){s15_label('DESLIZA',2.35,5.9,t);const cw=L(1100,860),ch=L(640,1000),cy=L(CY+60,CY+60),gap=cw+L(120,90);
-    const sws=[2.95,4.05,5.15];let pos=0;sws.forEach((a,i)=>{pos+=ex(P(t,a,.5))+(i<2?0:0)});const shift=pos;
+    const sws=[3.05,4.45];let pos=0;sws.forEach((a,i)=>{pos+=ex(P(t,a,.5))+(i<2?0:0)});const shift=pos;
     const vel=sws.reduce((m,a)=>m+Math.max(0,1-Math.abs(t-a-.15)/.3),0);
     const ent=bk(P(t,2.3,.5),1.4),out=eio(P(t,5.65,.35));
     for(let i=0;i<3;i++){const x=CX+(i-shift)*gap+(1-ent)*W;if(Math.abs(x-CX)>W)continue;X.save();X.globalAlpha=1-out;const k=1-out*.3;X.translate(x,cy);X.scale(k,k);X.translate(-x,-cy);s15_card(i,x,cy,cw,ch,-vel*.9,t);X.restore()}
     // dedo que arrastra
-    sws.forEach(a=>{if(t>a-.35&&t<a+.65){const q=eio(P(t,a,.45));const hx=lerp(CX+L(330,260),CX-L(330,260),q),hy=cy+L(150,280);const ap=ex(P(t,a-.35,.25))*(1-ss(P(t,a+.45,.2)));
+    sws.forEach(a=>{if(t>a-.35&&t<a+.65){const q=eio(P(t,a,.45));const hx=lerp(CX+L(330,260),CX-L(330,260),q),hy=cy+L(340,420);const ap=ex(P(t,a-.35,.25))*(1-ss(P(t,a+.45,.2)));
       if(t>a&&t<a+.45){X.save();X.strokeStyle='rgba(8,225,255,.6)';X.lineWidth=18;X.lineCap='round';X.beginPath();X.moveTo(CX+L(330,260),hy);X.lineTo(hx,hy);X.stroke();X.restore()}
       s15_touch(hx,hy,t>a-.05&&t<a+.5?1:0);s15_hand(hx,hy,L(.8,.95),ap,t>a&&t<a+.45?1:0)}})}
   // ===== 2 · toca dos veces (5.8–9.3) =====
@@ -76,7 +76,7 @@ SCENE(15,{dur:D,draw(t){
     s15_ripple(hx,hy,t,6.62,'255,255,255',300);s15_ripple(hx,hy,t,6.88,'227,23,62',600);
     if(t>=7.2){const sz=fit('DALE ME GUSTA',L(1500,980),L(150,130),FA);slam('DALE ME GUSTA',CX,L(CY+360,CY+520),sz,7.2,t,{...FA,c:'#fff',from:2.4,stag:.03,glow:'rgba(227,23,62,.8)',gb:30})}
     // dedo: dos toques
-    const ap=ex(P(t,6.0,.4))*(1-ss(P(t,7.4,.3)));const tap=[6.62,6.88].some(a=>t>a-.06&&t<a+.08)?1:0;
+    const ap=ex(P(t,6.0,.4))*(1-ss(P(t,6.95,.25)));const tap=[6.62,6.88].some(a=>t>a-.06&&t<a+.08)?1:0;
     s15_touch(hx,hy,[6.62,6.88].reduce((m,a)=>Math.max(m,1-Math.abs(t-a)/.12),0));s15_hand(hx+(1-ap)*400,hy+(1-ap)*500,L(.85,1),ap,tap);
     X.restore()}
   // ===== 3 · mantén presionado (9.2–12.9) =====
@@ -117,8 +117,9 @@ SCENE(15,{dur:D,draw(t){
     logo3D(lx,ly+(1-ex(p))*L(300,500),L(480,600)*lerp(.6,1,bk(p,1.5)),lerp(-.9,0,ex(P(t,15.6,1)))+.05*Math.sin(t*2)*ss(P(t,16.6,.4)),{depth:22,shine:P(t,16.4,1),glow:'rgba(8,225,255,.45)'});
     const z=fit('/UNEVISION',L(1500,980),L(170,150),FA);slam('/UNEVISION',CX,L(790,1180),z,16.3,t,{...FA,c:K.cian,from:2.2,stag:.035,glow:'rgba(8,225,255,.6)',gb:30});
     const r=ex(P(t,16.8,.5));X.fillStyle=K.rojo;X.fillRect(CX-L(500,420)*r,L(890,1290),L(1000,840)*r,12);
-    rise('SÍGUENOS · EL CANAL QUE CRECE CADA DÍA',CX,L(965,1370),fit('SÍGUENOS · EL CANAL QUE CRECE CADA DÍA',L(1500,980),L(50,40),FAc),17.0,t,{...FAc,c:'#fff',ls:4});
+    if(TV)rise('SÍGUENOS · EL CANAL QUE CRECE CADA DÍA',CX,965,fit('SÍGUENOS · EL CANAL QUE CRECE CADA DÍA',1500,62,FAc),17.0,t,{...FAc,c:'#fff',ls:4});
+    else{rise('SÍGUENOS',CX,1380,96,17.0,t,{...FAc,c:'#fff',ls:10});rise('EL CANAL QUE CRECE CADA DÍA',CX,1475,fit('EL CANAL QUE CRECE CADA DÍA',960,58,FAc),17.2,t,{...FAc,c:K.ambar,ls:3})}
     X.restore()}
-},events:[['golpe',.35],['riser',.6],['swipe',1.55],['whoosh',1.6],['golpe',2.35],['swipe',2.95],['swipe',4.05],['swipe',5.15],['whoosh',5.7],['pop',6.62],['golpe',6.88],['golpe',7.2],['whoosh',9.15],['riser',10.2],['golpe',11.2],['pop',11.6],['whoosh',12.8],['golpe',12.95],['whoosh_largo',14.0],['riser',14.6],['golpe',15.6],['golpe',16.3],['obturador',17.0]],
+},events:[['golpe',.35],['riser',.6],['swipe',1.55],['whoosh',1.6],['golpe',2.35],['swipe',3.05],['swipe',4.45],['whoosh',5.7],['pop',6.62],['golpe',6.88],['golpe',7.2],['whoosh',9.15],['riser',10.2],['golpe',11.2],['pop',11.6],['whoosh',12.8],['golpe',12.95],['whoosh_largo',14.0],['riser',14.6],['golpe',15.6],['golpe',16.3],['obturador',17.0]],
 musica:{estilo:'trap',bpm:140,tono:'F#m',hits:[.35,2.35,6.88,11.2,12.95,15.6,16.3],final:15.6}});
 })();
